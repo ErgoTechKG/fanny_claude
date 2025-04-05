@@ -84,7 +84,7 @@ export default function Header({
             <div className="relative">
               <button className="flex items-center text-gray-700 hover:text-gray-900">
                 <img
-                  src="https://placehold.co/32x32"
+                  src="https://media.istockphoto.com/id/1165150697/photo/portrait-of-happy-exchange-student-facing-camera-smiling-while-holding-his-notebook-at-the.jpg?s=612x612&w=0&k=20&c=_2jF1Ql41WqH7HUEtCdg_r16wIC95sjqT27NBaVcVW4="
                   alt="User avatar"
                   className="h-8 w-8 rounded-full mr-2 border-2 border-blue-500"
                 />

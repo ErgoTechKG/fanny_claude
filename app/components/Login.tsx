@@ -47,7 +47,7 @@ export default function Login() {
         {/* Left side - image and title */}
         <div className="bg-blue-600 text-white p-8 md:w-1/2 flex flex-col justify-center items-center text-center">
           <div className="mb-6">
-            <img src="https://placehold.co/150x150" alt="University Logo" className="mx-auto h-24 w-24" />
+            <img src="https://cdn.elearningindustry.com/wp-content/uploads/2022/02/shutterstock_1112381495.jpg" alt="University Logo" className="mx-auto h-24 w-24" />
           </div>
           <h1 className="text-2xl font-bold mb-2">{t('login.title')}</h1>
           <p className="text-blue-100">{t('login.subtitle')}</p>

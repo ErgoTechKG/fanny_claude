@@ -60,7 +60,7 @@ export default function Sidebar({
       <div className="flex flex-col h-full">
         {/* Logo and app name */}
         <div className="p-4 flex items-center border-b border-blue-600">
-          <img src="https://placehold.co/40x40" alt="HUST Logo" className="mr-3 h-10 w-10" />
+          <img src="https://cdn.elearningindustry.com/wp-content/uploads/2022/02/shutterstock_1112381495.jpg" alt="HUST Logo" className="mr-3 h-10 w-10" />
           <div>
             <h1 className="font-bold text-lg">HUST</h1>
             <p className="text-xs text-blue-200">{language === 'en' ? 'Research Management' : '科研管理系统'}</p>
