@@ -13,7 +13,6 @@ import {
   Eye
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { DragDropContext, Droppable, Draggable, DroppableProvided, DraggableProvided, DropResult } from 'react-beautiful-dnd';
 
 // Mock data types
 interface Student {
@@ -188,6 +187,7 @@ export default function AdminDashboardModule() {
   });
   const [students, setStudents] = useState<Student[]>(mockStudents);
   const [instructors, setInstructors] = useState<Instructor[]>(mockInstructors);
+  const [draggedMeeting, setDraggedMeeting] = useState<Meeting | null>(null);
   
   // Format date based on language
   const formatDate = (date: Date) => {
@@ -225,87 +225,107 @@ export default function AdminDashboardModule() {
     });
   }, []);
   
-  // Handle drag end
-  const handleDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
+  // Handle drag start
+  const handleDragStart = (e: React.DragEvent, meeting: Meeting) => {
+    setDraggedMeeting(meeting);
+    e.dataTransfer.setData('text/plain', meeting.id);
     
-    // Dropped outside the list
-    if (!destination) {
-      return;
+    // Set a ghost image for dragging
+    const ghost = document.createElement('div');
+    ghost.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'border', 'border-blue-500');
+    ghost.style.width = '200px';
+    ghost.style.height = '100px';
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-1000px';
+    ghost.textContent = meeting.title;
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+    
+    setTimeout(() => {
+      document.body.removeChild(ghost);
+    }, 0);
+  };
+  
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+  
+  // Handle drop
+  const handleDrop = (e: React.DragEvent, dropStatus: 'scheduled' | 'inProgress' | 'completed') => {
+    e.preventDefault();
+    
+    if (draggedMeeting) {
+      // Create a copy of the meetings
+      const newMeetings = { ...meetings };
+      
+      // Find and remove the meeting from its current status list
+      const sourceStatus = draggedMeeting.status;
+      const meetingIndex = newMeetings[sourceStatus].findIndex(m => m.id === draggedMeeting.id);
+      
+      if (meetingIndex !== -1) {
+        // Remove from source
+        const [removedMeeting] = newMeetings[sourceStatus].splice(meetingIndex, 1);
+        
+        // Update status
+        removedMeeting.status = dropStatus;
+        
+        // Add to destination
+        newMeetings[dropStatus].push(removedMeeting);
+        
+        // Update state
+        setMeetings(newMeetings);
+      }
+      
+      setDraggedMeeting(null);
     }
-    
-    // No change
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
-    
-    // Create a copy of the meetings
-    const newMeetings = { ...meetings };
-    
-    // Remove from source
-    const [removedMeeting] = newMeetings[source.droppableId as keyof typeof newMeetings].splice(source.index, 1);
-    
-    // Update status
-    removedMeeting.status = destination.droppableId as 'scheduled' | 'inProgress' | 'completed';
-    
-    // Add to destination
-    newMeetings[destination.droppableId as keyof typeof newMeetings].splice(destination.index, 0, removedMeeting);
-    
-    // Update state
-    setMeetings(newMeetings);
   };
   
   // Render meeting card
-  const renderMeetingCard = (meeting: Meeting, index: number) => {
+  const renderMeetingCard = (meeting: Meeting) => {
     return (
-      <Draggable key={meeting.id} draggableId={meeting.id} index={index}>
-        {(provided: DraggableProvided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            className="bg-white p-4 mb-3 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition"
-          >
-            <div className="font-medium mb-2">{meeting.title}</div>
-            <div className="flex items-center mb-2 text-sm text-gray-600">
-              <Clock size={16} className="mr-1" />
-              <span>{formatDate(meeting.startTime)}</span>
-            </div>
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center text-sm text-gray-600">
-                <span className="font-medium">{t('admin.studentName')}:</span>
-                <span className="ml-1">{getStudentName(meeting.studentId)}</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center text-sm text-gray-600">
-                <span className="font-medium">{t('admin.instructorName')}:</span>
-                <span className="ml-1">{getInstructorName(meeting.instructorId)}</span>
-              </div>
-            </div>
-            <div className="flex justify-between text-sm">
-              <div className="flex items-center text-gray-600">
-                <Clock size={16} className="mr-1" />
-                <span>{meeting.duration} min</span>
-              </div>
-              <div className="flex space-x-2">
-                <button className="text-blue-600 hover:text-blue-800">
-                  <Eye size={16} />
-                </button>
-                <button className="text-green-600 hover:text-green-800">
-                  <Edit size={16} />
-                </button>
-                <button className="text-red-600 hover:text-red-800">
-                  <Trash size={16} />
-                </button>
-              </div>
-            </div>
+      <div
+        key={meeting.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, meeting)}
+        className="bg-white p-4 mb-3 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-move"
+      >
+        <div className="font-medium mb-2">{meeting.title}</div>
+        <div className="flex items-center mb-2 text-sm text-gray-600">
+          <Clock size={16} className="mr-1" />
+          <span>{formatDate(meeting.startTime)}</span>
+        </div>
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center text-sm text-gray-600">
+            <span className="font-medium">{t('admin.studentName')}:</span>
+            <span className="ml-1">{getStudentName(meeting.studentId)}</span>
           </div>
-        )}
-      </Draggable>
+        </div>
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center text-sm text-gray-600">
+            <span className="font-medium">{t('admin.instructorName')}:</span>
+            <span className="ml-1">{getInstructorName(meeting.instructorId)}</span>
+          </div>
+        </div>
+        <div className="flex justify-between text-sm">
+          <div className="flex items-center text-gray-600">
+            <Clock size={16} className="mr-1" />
+            <span>{meeting.duration} min</span>
+          </div>
+          <div className="flex space-x-2">
+            <button className="text-blue-600 hover:text-blue-800">
+              <Eye size={16} />
+            </button>
+            <button className="text-green-600 hover:text-green-800">
+              <Edit size={16} />
+            </button>
+            <button className="text-red-600 hover:text-red-800">
+              <Trash size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
     );
   };
   
@@ -395,85 +415,62 @@ export default function AdminDashboardModule() {
           <p className="text-sm text-gray-500">{t('admin.dragAndDrop')}</p>
         </div>
         
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Scheduled column */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-medium text-gray-700">{t('admin.scheduled')}</h4>
-                <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
-                  {meetings.scheduled.length}
-                </span>
-              </div>
-              <Droppable droppableId="scheduled">
-                {(provided: DroppableProvided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="min-h-[200px]"
-                  >
-                    {meetings.scheduled.map((meeting, index) => (
-                      renderMeetingCard(meeting, index)
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-              <button className="mt-3 flex items-center text-sm text-blue-600 hover:text-blue-800">
-                <PlusCircle size={16} className="mr-1" />
-                <span>{language === 'en' ? 'Add Meeting' : '添加会议'}</span>
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Scheduled column */}
+          <div 
+            className="bg-gray-50 rounded-lg p-4"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'scheduled')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-medium text-gray-700">{t('admin.scheduled')}</h4>
+              <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
+                {meetings.scheduled.length}
+              </span>
             </div>
-            
-            {/* In Progress column */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-medium text-gray-700">{t('admin.inProgress')}</h4>
-                <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
-                  {meetings.inProgress.length}
-                </span>
-              </div>
-              <Droppable droppableId="inProgress">
-                {(provided: DroppableProvided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="min-h-[200px]"
-                  >
-                    {meetings.inProgress.map((meeting, index) => (
-                      renderMeetingCard(meeting, index)
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+            <div className="min-h-[200px]">
+              {meetings.scheduled.map(meeting => renderMeetingCard(meeting))}
             </div>
-            
-            {/* Completed column */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-medium text-gray-700">{t('admin.completed')}</h4>
-                <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">
-                  {meetings.completed.length}
-                </span>
-              </div>
-              <Droppable droppableId="completed">
-                {(provided: DroppableProvided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="min-h-[200px]"
-                  >
-                    {meetings.completed.map((meeting, index) => (
-                      renderMeetingCard(meeting, index)
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+            <button className="mt-3 flex items-center text-sm text-blue-600 hover:text-blue-800">
+              <PlusCircle size={16} className="mr-1" />
+              <span>{language === 'en' ? 'Add Meeting' : '添加会议'}</span>
+            </button>
+          </div>
+          
+          {/* In Progress column */}
+          <div 
+            className="bg-gray-50 rounded-lg p-4"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'inProgress')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-medium text-gray-700">{t('admin.inProgress')}</h4>
+              <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                {meetings.inProgress.length}
+              </span>
+            </div>
+            <div className="min-h-[200px]">
+              {meetings.inProgress.map(meeting => renderMeetingCard(meeting))}
             </div>
           </div>
-        </DragDropContext>
+          
+          {/* Completed column */}
+          <div 
+            className="bg-gray-50 rounded-lg p-4"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'completed')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-medium text-gray-700">{t('admin.completed')}</h4>
+              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">
+                {meetings.completed.length}
+              </span>
+            </div>
+            <div className="min-h-[200px]">
+              {meetings.completed.map(meeting => renderMeetingCard(meeting))}
+            </div>
+          </div>
+        </div>
       </div>
       
       {/* Active user sessions tables */}
