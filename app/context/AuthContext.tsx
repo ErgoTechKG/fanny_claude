@@ -55,9 +55,13 @@ const AuthContext = createContext<AuthContextType>({
 
 // Auth provider component
 export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>(null);
-  const [user, setUser] = useState<User | null>(null);
+  // Auto authenticate in development mode
+  const isDev = process.env.NODE_ENV === 'development';
+  
+  // Default to authenticated with student role in development mode
+  const [isAuthenticated, setIsAuthenticated] = useState(isDev ? true : false);
+  const [userRole, setUserRole] = useState<UserRole>(isDev ? 'student' : null);
+  const [user, setUser] = useState<User | null>(isDev ? mockUsers.student : null);
 
   // Login function (mock implementation)
   const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
