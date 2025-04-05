@@ -1,11 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Only use export and basePath in production
-  ...(process.env.NODE_ENV === 'production' ? {
-    output: 'export',
-    basePath: '/fanny_claude',
-  } : {}),
-  
+  output: 'export',
+  // Remove the basePath - this is causing the issue
+  // basePath: '/fanny_claude',  
   images: {
     unoptimized: true
   },
@@ -13,4 +10,4 @@ const nextConfig = {
   reactStrictMode: true,
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
