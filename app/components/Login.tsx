@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Globe } from 'lucide-react';
+import { Globe, User, Users, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { UserRole } from '../context/AuthContext';
@@ -54,15 +54,24 @@ export default function Login() {
           <div className="mt-10 w-full">
             <button 
               onClick={() => setSelectedRole('student')}
-              className={`w-full ${selectedRole === 'student' ? 'bg-white text-blue-600' : 'bg-blue-700 text-white border border-white'} py-3 rounded-lg font-medium hover:bg-blue-50 hover:text-blue-600 transition mb-4`}
+              className={`w-full ${selectedRole === 'student' ? 'bg-white text-blue-600' : 'bg-blue-700 text-white border border-white'} py-3 rounded-lg font-medium hover:bg-blue-50 hover:text-blue-600 transition mb-4 flex items-center justify-center`}
             >
+              <User size={18} className="mr-2" />
               {t('login.studentLogin')}
             </button>
             <button
               onClick={() => setSelectedRole('instructor')}
-              className={`w-full ${selectedRole === 'instructor' ? 'bg-white text-blue-600' : 'bg-blue-700 text-white border border-white'} py-3 rounded-lg font-medium hover:bg-blue-50 hover:text-blue-600 transition`}
+              className={`w-full ${selectedRole === 'instructor' ? 'bg-white text-blue-600' : 'bg-blue-700 text-white border border-white'} py-3 rounded-lg font-medium hover:bg-blue-50 hover:text-blue-600 transition mb-4 flex items-center justify-center`}
             >
+              <Users size={18} className="mr-2" />
               {t('login.instructorLogin')}
+            </button>
+            <button
+              onClick={() => setSelectedRole('admin')}
+              className={`w-full ${selectedRole === 'admin' ? 'bg-white text-blue-600' : 'bg-blue-700 text-white border border-white'} py-3 rounded-lg font-medium hover:bg-blue-50 hover:text-blue-600 transition flex items-center justify-center`}
+            >
+              <ShieldCheck size={18} className="mr-2" />
+              {t('login.adminLogin')}
             </button>
           </div>
         </div>
@@ -70,7 +79,9 @@ export default function Login() {
         {/* Right side - login form */}
         <div className="p-8 md:w-1/2">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            {selectedRole === 'student' ? t('login.studentLogin') : t('login.instructorLogin')}
+            {selectedRole === 'student' ? t('login.studentLogin') : 
+             selectedRole === 'instructor' ? t('login.instructorLogin') : 
+             t('login.adminLogin')}
           </h2>
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>

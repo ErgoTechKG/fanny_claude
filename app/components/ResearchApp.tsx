@@ -14,6 +14,7 @@ import CollaboratorsModule from './modules/CollaboratorsModule';
 import AiMentorModule from './modules/AiMentorModule';
 import EvaluationModule from './modules/EvaluationModule';
 import ResearchNetworkModule from './modules/ResearchNetworkModule';
+import AdminDashboardModule from './modules/AdminDashboardModule';
 
 export default function ResearchApp() {
   const { isAuthenticated } = useAuth();
@@ -53,6 +54,8 @@ export default function ResearchApp() {
         return <EvaluationModule />;
       case 'researchNetwork':
         return <ResearchNetworkModule />;
+      case 'adminDashboard':
+        return <AdminDashboardModule />;
       default:
         return <Dashboard />;
     }

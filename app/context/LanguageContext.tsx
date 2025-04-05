@@ -31,6 +31,7 @@ const translations = {
     'login.forgotPassword': 'Forgot Password?',
     'login.studentLogin': 'Student Login',
     'login.instructorLogin': 'Instructor Login',
+    'login.adminLogin': 'Admin Login',
     'login.rememberMe': 'Remember me',
     
     // Navigation
@@ -79,6 +80,29 @@ const translations = {
     'instructor.week': 'Week',
     'instructor.createNewTopic': 'Create New Topic',
     'instructor.publishTopicDesc': 'Create a new research topic for students to explore.',
+    
+    // Admin specific
+    'admin.title': 'Admin Dashboard',
+    'admin.activeMeetings': 'Active Meetings',
+    'admin.activeInstructors': 'Active Instructors',
+    'admin.activeStudents': 'Active Students',
+    'admin.studentInstructorMeetings': 'Student-Instructor Meetings',
+    'admin.dragAndDrop': 'Drag and drop to reassign',
+    'admin.overview': 'System Overview',
+    'admin.usersOnline': 'Users Online',
+    'admin.pendingApprovals': 'Pending Approvals',
+    'admin.systemStatus': 'System Status',
+    'admin.scheduled': 'Scheduled',
+    'admin.inProgress': 'In Progress',
+    'admin.completed': 'Completed',
+    'admin.studentName': 'Student Name',
+    'admin.instructorName': 'Instructor Name',
+    'admin.startTime': 'Start Time',
+    'admin.duration': 'Duration',
+    'admin.status': 'Status',
+    'admin.actions': 'Actions',
+    'admin.viewDetails': 'View Details',
+    'admin.assignInstructor': 'Assign Instructor',
   },
   zh: {
     // Login
@@ -90,6 +114,7 @@ const translations = {
     'login.forgotPassword': '忘记密码？',
     'login.studentLogin': '学生登录',
     'login.instructorLogin': '导师登录',
+    'login.adminLogin': '管理员登录',
     'login.rememberMe': '记住我',
     
     // Navigation
@@ -138,6 +163,29 @@ const translations = {
     'instructor.week': '周',
     'instructor.createNewTopic': '创建新课题',
     'instructor.publishTopicDesc': '创建新的研究课题供学生探索。',
+    
+    // Admin specific
+    'admin.title': '管理员仪表盘',
+    'admin.activeMeetings': '活跃会议',
+    'admin.activeInstructors': '在线导师',
+    'admin.activeStudents': '在线学生',
+    'admin.studentInstructorMeetings': '学生-导师会议',
+    'admin.dragAndDrop': '拖放以重新分配',
+    'admin.overview': '系统概览',
+    'admin.usersOnline': '在线用户',
+    'admin.pendingApprovals': '待批准',
+    'admin.systemStatus': '系统状态',
+    'admin.scheduled': '已安排',
+    'admin.inProgress': '进行中',
+    'admin.completed': '已完成',
+    'admin.studentName': '学生姓名',
+    'admin.instructorName': '导师姓名',
+    'admin.startTime': '开始时间',
+    'admin.duration': '时长',
+    'admin.status': '状态',
+    'admin.actions': '操作',
+    'admin.viewDetails': '查看详情',
+    'admin.assignInstructor': '分配导师',
   }
 };
 

@@ -3,7 +3,7 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // User role type
-export type UserRole = 'student' | 'instructor' | null;
+export type UserRole = 'student' | 'instructor' | 'admin' | null;
 
 // User interface
 export interface User {
@@ -35,6 +35,12 @@ const mockUsers: Record<string, User> = {
     name: 'Prof. Li Ming',
     email: 'li.ming@hust.edu.cn',
     role: 'instructor'
+  },
+  admin: {
+    id: '3',
+    name: 'Admin Wang Chen',
+    email: 'admin@hust.edu.cn',
+    role: 'admin'
   }
 };
 

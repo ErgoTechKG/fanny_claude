@@ -9,7 +9,9 @@ import {
   MessageSquare, 
   Settings, 
   Globe, 
-  LogOut 
+  LogOut,
+  Activity,
+  LayoutDashboard
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -30,7 +32,7 @@ export default function Sidebar({
   toggleLanguage
 }: SidebarProps) {
   const { t, language } = useLanguage();
-  const { logout } = useAuth();
+  const { logout, userRole } = useAuth();
   
   // Navigation items
   const navItems = [
@@ -42,6 +44,11 @@ export default function Sidebar({
     { id: 'aiMentor', icon: <MessageSquare size={20} />, label: t('nav.aiMentor') },
     { id: 'evaluation', icon: <ClipboardCheck size={20} />, label: t('nav.evaluation') },
     { id: 'researchNetwork', icon: <Users size={20} />, label: t('nav.researchNetwork') },
+  ];
+
+  // Admin-specific navigation items
+  const adminNavItems = [
+    { id: 'adminDashboard', icon: <LayoutDashboard size={20} />, label: t('admin.title') },
   ];
   
   return (
@@ -63,6 +70,24 @@ export default function Sidebar({
         {/* Navigation items */}
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-2">
+            {/* Show admin navigation items only for admin users */}
+            {userRole === 'admin' && adminNavItems.map((item) => (
+              <li key={item.id}>
+                <button
+                  onClick={() => setCurrentSection(item.id)}
+                  className={`flex items-center w-full px-4 py-3 rounded-lg transition-colors ${
+                    currentSection === item.id
+                      ? 'bg-blue-800 text-white'
+                      : 'text-blue-100 hover:bg-blue-800/50'
+                  }`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              </li>
+            ))}
+            
+            {/* Regular navigation items */}
             {navItems.map((item) => (
               <li key={item.id}>
                 <button
