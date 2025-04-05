@@ -7,6 +7,13 @@ import Login from './Login';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Dashboard from './Dashboard';
+import CoursesModule from './modules/CoursesModule';
+import ProjectsModule from './modules/ProjectsModule';
+import PublicationsModule from './modules/PublicationsModule';
+import CollaboratorsModule from './modules/CollaboratorsModule';
+import AiMentorModule from './modules/AiMentorModule';
+import EvaluationModule from './modules/EvaluationModule';
+import ResearchNetworkModule from './modules/ResearchNetworkModule';
 
 export default function ResearchApp() {
   const { isAuthenticated } = useAuth();
@@ -26,6 +33,30 @@ export default function ResearchApp() {
   if (!isAuthenticated) {
     return <Login />;
   }
+
+  // Get the appropriate module component based on currentSection
+  const getModuleComponent = () => {
+    switch (currentSection) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'courses':
+        return <CoursesModule />;
+      case 'projects':
+        return <ProjectsModule />;
+      case 'publications':
+        return <PublicationsModule />;
+      case 'collaborators':
+        return <CollaboratorsModule />;
+      case 'aiMentor':
+        return <AiMentorModule />;
+      case 'evaluation':
+        return <EvaluationModule />;
+      case 'researchNetwork':
+        return <ResearchNetworkModule />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -51,20 +82,8 @@ export default function ResearchApp() {
 
         {/* Main content area */}
         <main className="pt-16 px-4 md:px-6 pb-8 overflow-y-auto h-full">
-          {/* Dashboard is the default view */}
-          {currentSection === 'dashboard' && <Dashboard />}
-
-          {/* Placeholder for other sections */}
-          {currentSection !== 'dashboard' && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">
-                Coming Soon
-              </h3>
-              <p className="text-gray-600">
-                This section is under development.
-              </p>
-            </div>
-          )}
+          {/* Render the appropriate module based on the currentSection */}
+          {getModuleComponent()}
         </main>
       </div>
     </div>

@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HUST Research Project Management System
+
+A bilingual (English/Chinese) research project management platform for Huazhong University of Science and Technology's Mechanical Engineering Department, built with Next.js and React.
+
+## Features {user@hust.edu.cn}
+
+- **Dual Interface System:**
+
+  - Student interface for project tracking, research courses, and evaluation
+  - Instructor interface for student management, grading, and project publishing
+- **Bilingual Support:**
+
+  - Complete language toggle between Chinese (中文) and English
+  - Context-aware translations for all UI elements
+- **Authentication:**
+
+  - Role-based login (student/instructor)
+  - Secure authentication flow
+- **Dashboard:**
+
+  - Project tracking with progress visualization
+  - Upcoming deadlines and timeline view
+  - Stats cards with key metrics
+- **AI Research Mentor:**
+
+  - AI assistant for research guidance
+  - Support for research methodology and publishing guidance
+- **12-Step Research Method:**
+
+  - Structured project progress tracking
+  - Clear visualization of research progress
+
+## Technologies Used
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide React (icons)
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository:**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   ```bash
+   git clone <repository-url>
+   ```
+2. **Install dependencies:**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   npm install
+   ```
+3. **Run the development server:**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   ```bash
+   npm run dev
+   ```
+4. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
 
-## Learn More
+- `app/components/` - React components for the UI
+- `app/context/` - React context providers for state management
+- `app/hooks/` - Custom React hooks
+- `app/utils/` - Utility functions
+- `app/page.tsx` - Main entry point for the application
+- `app/layout.tsx` - Root layout component with providers
 
-To learn more about Next.js, take a look at the following resources:
+## Authentication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For demo purposes, the system includes mock authentication:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Student Login:** Any email/password with student role selection
+- **Instructor Login:** Any email/password with instructor role selection
 
-## Deploy on Vercel
+## Responsive Design
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application is fully responsive with:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Mobile menu toggle for smaller screens
+- Collapsible sidebar for maximum content space
+- Responsive grid layouts that adapt to various screen sizes
