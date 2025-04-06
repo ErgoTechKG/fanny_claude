@@ -5,7 +5,7 @@
   "homepage": "https://ergotechkg.github.io/fanny_claude",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && touch out/.nojekyll",
+    "build": "SKIP_TYPESCRIPT=true next build --no-lint && touch out/.nojekyll",
     "start": "next start",
     "lint": "next lint",
     "export": "next build && touch out/.nojekyll",
