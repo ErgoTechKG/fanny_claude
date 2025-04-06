@@ -10,7 +10,9 @@ import {
   Calendar,
   Edit,
   Trash,
-  Eye
+  Eye,
+  Book,
+  ClipboardCheck
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -41,6 +43,25 @@ interface Meeting {
   duration: number; // in minutes
   status: 'scheduled' | 'inProgress' | 'completed';
   notes?: string;
+}
+
+// Add new interfaces for review items
+interface CourseReview {
+  id: string;
+  title: string;
+  instructor: string;
+  department: string;
+  status: 'pending' | 'inProgress' | 'completed';
+  dueDate: Date;
+}
+
+interface ProjectReview {
+  id: string;
+  title: string;
+  leader: string;
+  department: string;
+  status: 'pending' | 'inProgress' | 'completed';
+  dueDate: Date;
 }
 
 // Mock data
@@ -117,6 +138,89 @@ const mockInstructors: Instructor[] = [
   }
 ];
 
+// Add mock data for alerts and reviews
+const mockAlertedStudents: Student[] = [
+  {
+    id: 's2',
+    name: 'Lin Mei',
+    avatar: 'https://placehold.co/40x40',
+    department: 'Computer Science',
+    email: 'lin.mei@hust.edu.cn'
+  },
+  {
+    id: 's5',
+    name: 'Liu Fang',
+    avatar: 'https://placehold.co/40x40',
+    department: 'Mechanical Engineering',
+    email: 'liu.fang@hust.edu.cn'
+  }
+];
+
+const mockAlertedInstructors: Instructor[] = [
+  {
+    id: 'i3',
+    name: 'Prof. Wu Hong',
+    avatar: 'https://placehold.co/40x40',
+    department: 'Electrical Engineering',
+    email: 'wu.hong@hust.edu.cn',
+    expertise: ['Power Systems', 'Control Theory', 'Electronics']
+  }
+];
+
+const mockCourseReviews: CourseReview[] = [
+  {
+    id: 'c1',
+    title: 'Advanced Robotics',
+    instructor: 'Prof. Li Ming',
+    department: 'Mechanical Engineering',
+    status: 'pending',
+    dueDate: new Date('2023-08-10')
+  },
+  {
+    id: 'c2',
+    title: 'Machine Learning Algorithms',
+    instructor: 'Dr. Zhao Jian',
+    department: 'Computer Science',
+    status: 'pending',
+    dueDate: new Date('2023-08-15')
+  },
+  {
+    id: 'c3',
+    title: 'Power Systems Analysis',
+    instructor: 'Prof. Wu Hong',
+    department: 'Electrical Engineering',
+    status: 'inProgress',
+    dueDate: new Date('2023-08-05')
+  }
+];
+
+const mockProjectReviews: ProjectReview[] = [
+  {
+    id: 'p1',
+    title: 'Autonomous Drone Navigation',
+    leader: 'Zhang Wei',
+    department: 'Mechanical Engineering',
+    status: 'pending',
+    dueDate: new Date('2023-08-12')
+  },
+  {
+    id: 'p2',
+    title: 'AI-Based Medical Diagnosis',
+    leader: 'Lin Mei',
+    department: 'Computer Science',
+    status: 'inProgress',
+    dueDate: new Date('2023-08-07')
+  },
+  {
+    id: 'p3',
+    title: 'Smart Grid Optimization',
+    leader: 'Wang Tao',
+    department: 'Electrical Engineering',
+    status: 'pending',
+    dueDate: new Date('2023-08-20')
+  }
+];
+
 const mockMeetings: Meeting[] = [
   {
     id: 'm1',
@@ -188,6 +292,20 @@ export default function AdminDashboardModule() {
   const [students, setStudents] = useState<Student[]>(mockStudents);
   const [instructors, setInstructors] = useState<Instructor[]>(mockInstructors);
   const [draggedMeeting, setDraggedMeeting] = useState<Meeting | null>(null);
+  
+  // Added state for modal visibility
+  const [showInstructorsModal, setShowInstructorsModal] = useState(false);
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [showAlertedStudentsModal, setShowAlertedStudentsModal] = useState(false);
+  const [showAlertedInstructorsModal, setShowAlertedInstructorsModal] = useState(false);
+  const [showCourseReviewsModal, setShowCourseReviewsModal] = useState(false);
+  const [showProjectReviewsModal, setShowProjectReviewsModal] = useState(false);
+  
+  // Added state for alerted users and reviews
+  const [alertedStudents] = useState<Student[]>(mockAlertedStudents);
+  const [alertedInstructors] = useState<Instructor[]>(mockAlertedInstructors);
+  const [courseReviews] = useState<CourseReview[]>(mockCourseReviews);
+  const [projectReviews] = useState<ProjectReview[]>(mockProjectReviews);
   
   // Format date based on language
   const formatDate = (date: Date) => {
@@ -343,7 +461,7 @@ export default function AdminDashboardModule() {
       </div>
       
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center mb-4">
             <div className="w-12 h-12 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full mr-4">
@@ -365,13 +483,16 @@ export default function AdminDashboardModule() {
           </p>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div 
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition"
+          onClick={() => setShowInstructorsModal(true)}
+        >
           <div className="flex items-center mb-4">
             <div className="w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full mr-4">
               <UserCheck size={24} />
             </div>
             <div>
-              <p className="text-gray-500 text-sm">{t('admin.activeInstructors')}</p>
+              <p className="text-gray-500 text-sm">{language === 'en' ? 'Active Instructors' : '活跃导师'}</p>
               <h3 className="text-2xl font-bold text-gray-800">{instructors.length}</h3>
             </div>
           </div>
@@ -386,13 +507,16 @@ export default function AdminDashboardModule() {
           </p>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div 
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition"
+          onClick={() => setShowStudentsModal(true)}
+        >
           <div className="flex items-center mb-4">
             <div className="w-12 h-12 flex items-center justify-center bg-green-100 text-green-600 rounded-full mr-4">
               <Users size={24} />
             </div>
             <div>
-              <p className="text-gray-500 text-sm">{t('admin.activeStudents')}</p>
+              <p className="text-gray-500 text-sm">{language === 'en' ? 'Active Students' : '活跃学生'}</p>
               <h3 className="text-2xl font-bold text-gray-800">{students.length}</h3>
             </div>
           </div>
@@ -405,6 +529,113 @@ export default function AdminDashboardModule() {
           <p className="text-gray-500 text-xs mt-2">
             {Math.round(students.length * 0.6)} {language === 'en' ? 'meeting with instructors' : '与导师会面中'}
           </p>
+        </div>
+
+        <div 
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition"
+          onClick={() => setShowAlertedStudentsModal(true)}
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 flex items-center justify-center bg-amber-100 text-amber-600 rounded-full mr-4">
+              <Users size={24} />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">{language === 'en' ? 'Alerted Students' : '需注意学生'}</p>
+              <h3 className="text-2xl font-bold text-gray-800">{alertedStudents.length}</h3>
+            </div>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full">
+            <div 
+              className="h-2 bg-amber-500 rounded-full" 
+              style={{ width: '100%' }}
+            ></div>
+          </div>
+          <p className="text-gray-500 text-xs mt-2">
+            {language === 'en' ? 'Requires attention' : '需要关注'}
+          </p>
+        </div>
+
+        <div 
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition"
+          onClick={() => setShowAlertedInstructorsModal(true)}
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 flex items-center justify-center bg-red-100 text-red-600 rounded-full mr-4">
+              <UserCheck size={24} />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">{language === 'en' ? 'Alerted Instructors' : '需注意导师'}</p>
+              <h3 className="text-2xl font-bold text-gray-800">{alertedInstructors.length}</h3>
+            </div>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full">
+            <div 
+              className="h-2 bg-red-500 rounded-full" 
+              style={{ width: '100%' }}
+            ></div>
+          </div>
+          <p className="text-gray-500 text-xs mt-2">
+            {language === 'en' ? 'Requires attention' : '需要关注'}
+          </p>
+        </div>
+      </div>
+
+      {/* Review stats cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div 
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition"
+          onClick={() => setShowCourseReviewsModal(true)}
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 flex items-center justify-center bg-indigo-100 text-indigo-600 rounded-full mr-4">
+              <Book size={24} />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">{language === 'en' ? 'Courses Requiring Review' : '需审核科研课程'}</p>
+              <h3 className="text-2xl font-bold text-gray-800">{courseReviews.filter(c => c.status !== 'completed').length}</h3>
+            </div>
+          </div>
+          <div className="flex justify-between mt-2">
+            <div>
+              <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full mr-2">
+                {courseReviews.filter(c => c.status === 'pending').length} {language === 'en' ? 'Pending' : '待审核'}
+              </span>
+              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                {courseReviews.filter(c => c.status === 'inProgress').length} {language === 'en' ? 'In Progress' : '审核中'}
+              </span>
+            </div>
+            <div className="text-sm text-gray-500">
+              {language === 'en' ? 'Click to view' : '点击查看'}
+            </div>
+          </div>
+        </div>
+
+        <div 
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 cursor-pointer hover:shadow-md transition"
+          onClick={() => setShowProjectReviewsModal(true)}
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 flex items-center justify-center bg-teal-100 text-teal-600 rounded-full mr-4">
+              <ClipboardCheck size={24} />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">{language === 'en' ? 'Projects Requiring Review' : '需审核科研项目'}</p>
+              <h3 className="text-2xl font-bold text-gray-800">{projectReviews.filter(p => p.status !== 'completed').length}</h3>
+            </div>
+          </div>
+          <div className="flex justify-between mt-2">
+            <div>
+              <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full mr-2">
+                {projectReviews.filter(p => p.status === 'pending').length} {language === 'en' ? 'Pending' : '待审核'}
+              </span>
+              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                {projectReviews.filter(p => p.status === 'inProgress').length} {language === 'en' ? 'In Progress' : '审核中'}
+              </span>
+            </div>
+            <div className="text-sm text-gray-500">
+              {language === 'en' ? 'Click to view' : '点击查看'}
+            </div>
+          </div>
         </div>
       </div>
       
@@ -477,7 +708,7 @@ export default function AdminDashboardModule() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active instructors */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">{t('admin.activeInstructors')}</h3>
+          <h3 className="text-lg font-medium text-gray-800 mb-4">{language === 'en' ? 'Active Instructors' : '活跃导师'}</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
@@ -494,7 +725,7 @@ export default function AdminDashboardModule() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {instructors.map((instructor) => {
+                {instructors.slice(0, 3).map((instructor) => {
                   const activeMeetings = [...meetings.scheduled, ...meetings.inProgress].filter(m => m.instructorId === instructor.id);
                   return (
                     <tr key={instructor.id}>
@@ -522,12 +753,20 @@ export default function AdminDashboardModule() {
                 })}
               </tbody>
             </table>
+            <div className="mt-3 text-center">
+              <button 
+                onClick={() => setShowInstructorsModal(true)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                {language === 'en' ? 'View All Instructors' : '查看所有导师'}
+              </button>
+            </div>
           </div>
         </div>
         
         {/* Active students */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">{t('admin.activeStudents')}</h3>
+          <h3 className="text-lg font-medium text-gray-800 mb-4">{language === 'en' ? 'Active Students' : '活跃学生'}</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
@@ -537,6 +776,156 @@ export default function AdminDashboardModule() {
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Meeting With' : '会议对象'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {students.slice(0, 3).map((student) => {
+                  const activeMeeting = [...meetings.scheduled, ...meetings.inProgress].find(m => m.studentId === student.id);
+                  const meetingInstructor = activeMeeting ? instructors.find(i => i.id === activeMeeting.instructorId) : null;
+                  
+                  return (
+                    <tr key={student.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <img className="h-10 w-10 rounded-full" src={student.avatar} alt="" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{student.department}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {meetingInstructor ? (
+                          <div className="text-sm text-gray-900">{meetingInstructor.name}</div>
+                        ) : (
+                          <span className="text-sm text-gray-500">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="mt-3 text-center">
+              <button 
+                onClick={() => setShowStudentsModal(true)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                {language === 'en' ? 'View All Students' : '查看所有学生'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal for displaying all instructors */}
+      {showInstructorsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium text-gray-900">
+                {language === 'en' ? 'All Active Instructors' : '所有活跃导师'}
+              </h3>
+              <button 
+                onClick={() => setShowInstructorsModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('admin.instructorName')}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Expertise' : '专业领域'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Active Sessions' : '活跃会话'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {instructors.map((instructor) => {
+                  const activeMeetings = [...meetings.scheduled, ...meetings.inProgress].filter(m => m.instructorId === instructor.id);
+                  return (
+                    <tr key={instructor.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <img className="h-10 w-10 rounded-full" src={instructor.avatar} alt="" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{instructor.name}</div>
+                            <div className="text-sm text-gray-500">{instructor.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{instructor.department}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {instructor.expertise.map((exp, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              {exp}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          {activeMeetings.length}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for displaying all students */}
+      {showStudentsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium text-gray-900">
+                {language === 'en' ? 'All Active Students' : '所有活跃学生'}
+              </h3>
+              <button 
+                onClick={() => setShowStudentsModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('admin.studentName')}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Email' : '邮箱'}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {language === 'en' ? 'Meeting With' : '会议对象'}
@@ -557,12 +946,14 @@ export default function AdminDashboardModule() {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{student.name}</div>
-                            <div className="text-sm text-gray-500">{student.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{student.department}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{student.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {meetingInstructor ? (
@@ -578,7 +969,302 @@ export default function AdminDashboardModule() {
             </table>
           </div>
         </div>
-      </div>
+      )}
+      
+      {/* Modal for alerted students */}
+      {showAlertedStudentsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium text-gray-900">
+                {language === 'en' ? 'Students Requiring Attention' : '需要注意的学生'}
+              </h3>
+              <button 
+                onClick={() => setShowAlertedStudentsModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('admin.studentName')}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Email' : '邮箱'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Action' : '操作'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {alertedStudents.map((student) => (
+                  <tr key={student.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img className="h-10 w-10 rounded-full" src={student.avatar} alt="" />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{student.department}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{student.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button className="text-indigo-600 hover:text-indigo-900 mr-2">
+                        {language === 'en' ? 'Contact' : '联系'}
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        {language === 'en' ? 'Resolve' : '解决'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal for alerted instructors */}
+      {showAlertedInstructorsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium text-gray-900">
+                {language === 'en' ? 'Instructors Requiring Attention' : '需要注意的导师'}
+              </h3>
+              <button 
+                onClick={() => setShowAlertedInstructorsModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('admin.instructorName')}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Expertise' : '专业领域'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Action' : '操作'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {alertedInstructors.map((instructor) => (
+                  <tr key={instructor.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img className="h-10 w-10 rounded-full" src={instructor.avatar} alt="" />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{instructor.name}</div>
+                          <div className="text-sm text-gray-500">{instructor.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{instructor.department}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {instructor.expertise.map((exp, index) => (
+                          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            {exp}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button className="text-indigo-600 hover:text-indigo-900 mr-2">
+                        {language === 'en' ? 'Contact' : '联系'}
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        {language === 'en' ? 'Resolve' : '解决'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal for course reviews */}
+      {showCourseReviewsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium text-gray-900">
+                {language === 'en' ? 'Courses Requiring Review' : '需要审核的科研课程'}
+              </h3>
+              <button 
+                onClick={() => setShowCourseReviewsModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Course Title' : '课程名称'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Instructor' : '导师'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Status' : '状态'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Due Date' : '截止日期'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Action' : '操作'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {courseReviews.map((course) => (
+                  <tr key={course.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{course.title}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{course.instructor}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{course.department}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${course.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
+                        ${course.status === 'inProgress' ? 'bg-blue-100 text-blue-800' : ''}
+                        ${course.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                      `}>
+                        {course.status === 'pending' ? (language === 'en' ? 'Pending' : '待审核') : ''}
+                        {course.status === 'inProgress' ? (language === 'en' ? 'In Progress' : '审核中') : ''}
+                        {course.status === 'completed' ? (language === 'en' ? 'Completed' : '已完成') : ''}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatDate(course.dueDate)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button className="text-indigo-600 hover:text-indigo-900">
+                        {language === 'en' ? 'Review' : '审核'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal for project reviews */}
+      {showProjectReviewsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium text-gray-900">
+                {language === 'en' ? 'Projects Requiring Review' : '需要审核的科研项目'}
+              </h3>
+              <button 
+                onClick={() => setShowProjectReviewsModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Project Title' : '项目名称'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Project Leader' : '项目负责人'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Department' : '部门'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Status' : '状态'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Due Date' : '截止日期'}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {language === 'en' ? 'Action' : '操作'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {projectReviews.map((project) => (
+                  <tr key={project.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{project.title}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{project.leader}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{project.department}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${project.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
+                        ${project.status === 'inProgress' ? 'bg-blue-100 text-blue-800' : ''}
+                        ${project.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                      `}>
+                        {project.status === 'pending' ? (language === 'en' ? 'Pending' : '待审核') : ''}
+                        {project.status === 'inProgress' ? (language === 'en' ? 'In Progress' : '审核中') : ''}
+                        {project.status === 'completed' ? (language === 'en' ? 'Completed' : '已完成') : ''}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatDate(project.dueDate)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button className="text-indigo-600 hover:text-indigo-900">
+                        {language === 'en' ? 'Review' : '审核'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

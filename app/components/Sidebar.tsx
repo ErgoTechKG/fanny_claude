@@ -37,7 +37,7 @@ export default function Sidebar({
   
   // Navigation items
   const navItems = [
-    { id: 'dashboard', icon: <FileText size={20} />, label: t('nav.dashboard') },
+    { id: 'dashboard', icon: <FileText size={20} />, label: t('nav.dashboard'), hideFor: ['admin'] },
     { id: 'courses', icon: <Book size={20} />, label: t('nav.courses'), hideFor: ['instructor'] },
     { id: 'projects', icon: <ClipboardCheck size={20} />, label: t('nav.projects') },
     { id: 'publications', icon: <FileText size={20} />, label: t('nav.publications') },
