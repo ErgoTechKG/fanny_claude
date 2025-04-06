@@ -159,6 +159,30 @@ export default function ProjectsModule() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   
+  // Check if we have a selected project from dashboard in sessionStorage
+  React.useEffect(() => {
+    const storedProject = sessionStorage.getItem('selectedProject');
+    if (storedProject) {
+      try {
+        const { id, isCompleted } = JSON.parse(storedProject);
+        
+        // Find the project in our data
+        const projectId = id.toString(); // Ensure it's a string to match our models
+        const foundProject = mockProjects.find(p => p.id === projectId);
+        
+        if (foundProject) {
+          setSelectedProject(foundProject);
+          setIsDetailsModalOpen(true);
+        }
+        
+        // Clear the sessionStorage after retrieving
+        sessionStorage.removeItem('selectedProject');
+      } catch (err) {
+        console.error("Error parsing stored project:", err);
+      }
+    }
+  }, []);
+  
   // Get status text based on status and language
   const getStatusText = (status: string) => {
     if (language === 'en') {
