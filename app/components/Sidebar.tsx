@@ -33,16 +33,23 @@ export default function Sidebar({
 }: SidebarProps) {
   const { t, language } = useLanguage();
   const { logout, userRole } = useAuth();
+  const currentUserRole = userRole || 'student'; // Default to student if userRole is null
   
   // Navigation items
   const navItems = [
     { id: 'dashboard', icon: <FileText size={20} />, label: t('nav.dashboard') },
-    { id: 'courses', icon: <Book size={20} />, label: t('nav.courses') },
+    { id: 'courses', icon: <Book size={20} />, label: t('nav.courses'), hideFor: ['instructor'] },
     { id: 'projects', icon: <ClipboardCheck size={20} />, label: t('nav.projects') },
     { id: 'publications', icon: <FileText size={20} />, label: t('nav.publications') },
     { id: 'collaborators', icon: <Users size={20} />, label: t('nav.collaborators') },
-    { id: 'aiMentor', icon: <MessageSquare size={20} />, label: t('nav.aiMentor') },
-    { id: 'evaluation', icon: <ClipboardCheck size={20} />, label: t('nav.evaluation') },
+    { id: 'aiMentor', icon: <MessageSquare size={20} />, label: t('nav.aiMentor'), hideFor: ['instructor'] },
+    { 
+      id: 'evaluation', 
+      icon: <ClipboardCheck size={20} />, 
+      label: currentUserRole === 'instructor' 
+        ? (language === 'en' ? 'Teaching Quality Evaluation' : '科研教学质量评估') 
+        : t('nav.evaluation')
+    },
     { id: 'researchNetwork', icon: <Users size={20} />, label: t('nav.researchNetwork') },
   ];
 
@@ -88,7 +95,9 @@ export default function Sidebar({
             ))}
             
             {/* Regular navigation items */}
-            {navItems.map((item) => (
+            {navItems
+              .filter(item => !item.hideFor || !item.hideFor.includes(currentUserRole))
+              .map((item) => (
               <li key={item.id}>
                 <button
                   onClick={() => setCurrentSection(item.id)}

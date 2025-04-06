@@ -19,6 +19,8 @@ export default function Dashboard() {
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [reportNotes, setReportNotes] = useState('');
+  const [showPastDueModal, setShowPastDueModal] = useState(false);
+  const [showPublishTopicModal, setShowPublishTopicModal] = useState(false);
   
   // Certificates data
   interface Certificate {
@@ -222,6 +224,44 @@ export default function Dashboard() {
     setReportNotes('');
   };
 
+  // Topic form states
+  const [topicForm, setTopicForm] = useState({
+    title: '',
+    description: '',
+    objective: '',
+    requiredSkills: '',
+    duration: '3',
+    maxStudents: '3',
+    category: 'engineering',
+    difficulty: 'intermediate'
+  });
+
+  // Handle topic form change
+  const handleTopicFormChange = (field: string, value: string) => {
+    setTopicForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Handle topic form submit
+  const handleSubmitTopic = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would submit the new topic to your backend
+    alert(language === 'en' ? 'New topic published successfully!' : '新课题发布成功！');
+    setShowPublishTopicModal(false);
+    setTopicForm({
+      title: '',
+      description: '',
+      objective: '',
+      requiredSkills: '',
+      duration: '3',
+      maxStudents: '3',
+      category: 'engineering',
+      difficulty: 'intermediate'
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
@@ -239,28 +279,43 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { 
-            title: userRole === 'student' ? t('dashboard.activeProjects') : t('instructor.pendingReviews'), 
+            title: userRole === 'student' ? t('dashboard.activeProjects') : t('instructor.pendingTasks'), 
             value: userRole === 'student' ? '2' : '5',
             color: 'bg-blue-500',
             onClick: () => userRole === 'student' && setShowCompletedProjects(false)
           },
           { 
-            title: userRole === 'student' ? t('dashboard.completedProjects') : t('instructor.studentProgress'), 
-            value: userRole === 'student' ? '3' : '12',
+            title: userRole === 'student' ? t('dashboard.completedProjects') : t('instructor.totalProjects'), 
+            value: userRole === 'student' ? '3' : '12/15',
             color: 'bg-green-500',
             onClick: () => userRole === 'student' && setShowCompletedProjects(true) 
           },
-          { 
-            title: t('dashboard.upcomingDeadlines'), 
-            value: userRole === 'student' ? '3' : '2',
-            color: 'bg-yellow-500'
-          },
-          { 
-            title: userRole === 'student' ? t('student.nextDeadline') : t('instructor.grantDeadlines'), 
-            value: '04/15',
-            color: 'bg-purple-500'
-          }
-        ].map((stat, index) => (
+          ...(userRole === 'student' ? [
+            { 
+              title: t('student.nextDeadline'),
+              value: '04/15',
+              color: 'bg-purple-500',
+            },
+            { 
+              title: t('dashboard.upcomingDeadlines'), 
+              value: '3',
+              color: 'bg-yellow-500',
+            }
+          ] : [
+            { 
+              title: t('instructor.pastDue'), 
+              value: '3',
+              color: 'bg-red-500',
+              onClick: () => setShowPastDueModal(true)
+            },
+            { 
+              title: t('dashboard.upcomingDeadlines'), 
+              value: '42/50',
+              color: 'bg-yellow-500',
+              onClick: () => window.dispatchEvent(new CustomEvent('switchModule', { detail: { module: 'students' } }))
+            }
+          ])
+        ].flat().map((stat, index) => (
           <div 
             key={index} 
             className={`bg-white rounded-xl shadow-sm p-6 border-t-4 border-l-4 transition-transform hover:scale-105 ${stat.onClick ? 'cursor-pointer' : ''}`}
@@ -281,7 +336,7 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold text-gray-800">
               {userRole === 'student' 
                 ? (showCompletedProjects ? t('dashboard.completedProjects') : t('dashboard.activeProjects'))
-                : t('instructor.studentProgress')
+                : language === 'en' ? 'Project Progress' : '正在进行的课题进度'
               }
             </h3>
             <button 
@@ -306,8 +361,8 @@ export default function Dashboard() {
                 <div className="flex justify-between">
                   <h4 className="font-medium text-gray-800">
                     {language === 'en' 
-                      ? `${userRole === 'student' ? project.title : 'Student ' + project.id}`
-                      : `${userRole === 'student' ? project.title : '学生 ' + project.id}`
+                      ? `${userRole === 'student' ? project.title : activeProjects[project.id - 1].title}`
+                      : `${userRole === 'student' ? project.title : activeProjects[project.id - 1].title}`
                     }
                   </h4>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${showCompletedProjects ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
@@ -317,8 +372,8 @@ export default function Dashboard() {
                 <p className="text-gray-600 text-sm mt-2">
                   {userRole === 'student' ? project.description : (
                     language === 'en'
-                      ? 'This is a brief description of the project or student progress.'
-                      : '这是项目或学生进度的简要描述。'
+                      ? activeProjects[project.id - 1].description
+                      : activeProjects[project.id - 1].description
                   )}
                 </p>
                 <div className="mt-4">
@@ -352,45 +407,83 @@ export default function Dashboard() {
           <div className="relative">
             <div className="absolute top-0 bottom-0 left-4 w-0.5 bg-gray-200"></div>
             
-            {[
-              { 
-                id: 1,
-                date: '04/07', 
-                event: language === 'en' 
-                  ? `${userRole === 'student' ? 'Submit weekly report' : 'Review student reports'}`
-                  : `${userRole === 'student' ? '提交周报' : '批改学生报告'}`,
-                onClick: userRole === 'student' ? () => setShowReportModal(true) : undefined
-              },
-              { 
-                id: 2,
-                date: '04/10', 
-                event: language === 'en' 
-                  ? `${userRole === 'student' ? 'Meeting with Prof. Li' : 'Department meeting'}`
-                  : `${userRole === 'student' ? '与李教授会面' : '系部会议'}`,
-                onClick: userRole === 'student' ? () => setShowMeetingModal(true) : undefined
-              },
-              { 
-                id: 3,
-                date: '04/15', 
-                event: language === 'en' 
-                  ? `${userRole === 'student' ? 'Research Project Evaluation' : 'Grant application deadline'}`
-                  : `${userRole === 'student' ? '科研项目导师评估' : '项目申请截止日期'}`,
-                onClick: userRole === 'student' ? () => setShowEvaluationModal(true) : undefined
-              }
-            ].map((item, index) => (
-              <div key={item.id} className="relative pl-10 pb-8">
-                <div className="absolute left-1.5 mt-1.5 rounded-full w-6 h-6 bg-blue-500 text-white flex items-center justify-center text-xs font-bold">
-                  {index + 1}
+            {userRole === 'student' ? 
+              // Student events
+              [
+                { 
+                  id: 1,
+                  date: '04/07', 
+                  event: language === 'en' ? 'Submit weekly report' : '提交周报',
+                  onClick: () => setShowReportModal(true)
+                },
+                { 
+                  id: 2,
+                  date: '04/10', 
+                  event: language === 'en' ? 'Meeting with Prof. Li' : '与李教授会面',
+                  onClick: () => setShowMeetingModal(true)
+                },
+                { 
+                  id: 3,
+                  date: '04/15', 
+                  event: language === 'en' ? 'Research Project Evaluation' : '科研项目导师评估',
+                  onClick: () => setShowEvaluationModal(true)
+                }
+              ].map((item, index) => (
+                <div key={item.id} className="relative pl-10 pb-8">
+                  <div className="absolute left-1.5 mt-1.5 rounded-full w-6 h-6 bg-blue-500 text-white flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </div>
+                  <div 
+                    className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition cursor-pointer hover:bg-gray-100"
+                    onClick={item.onClick}
+                  >
+                    <span className="text-xs font-medium text-gray-500 block">{item.date}</span>
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium text-gray-700 mt-1 block">{item.event}</span>
+                    </div>
+                  </div>
                 </div>
-                <div 
-                  className={`bg-gray-50 rounded-lg p-3 hover:shadow-md transition ${item.onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
-                  onClick={item.onClick}
-                >
-                  <span className="text-xs font-medium text-gray-500 block">{item.date}</span>
-                  <span className="text-sm font-medium text-gray-700 mt-1 block">{item.event}</span>
+              ))
+              :
+              // Instructor events
+              [
+                {
+                  id: 1,
+                  date: '04/07',
+                  event: language === 'en' ? 'Review student reports' : '批改学生报告',
+                  count: '2'
+                },
+                {
+                  id: 2,
+                  date: '04/10',
+                  event: language === 'en' ? 'Department meeting' : '系部会议',
+                  count: '3'
+                },
+                {
+                  id: 3,
+                  date: '04/15',
+                  event: language === 'en' ? 'Grant application deadline' : '项目申请截止日期',
+                  count: ''
+                }
+              ].map((item, index) => (
+                <div key={item.id} className="relative pl-10 pb-8">
+                  <div className="absolute left-1.5 mt-1.5 rounded-full w-6 h-6 bg-blue-500 text-white flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition">
+                    <span className="text-xs font-medium text-gray-500 block">{item.date}</span>
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium text-gray-700 mt-1 block">{item.event}</span>
+                      {item.count && (
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full">
+                          {item.count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
       </div>
@@ -497,7 +590,10 @@ export default function Dashboard() {
               <p className="text-gray-600 mb-4">
                 {t('instructor.publishTopicDesc')}
               </p>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+              <button 
+                onClick={() => setShowPublishTopicModal(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              >
                 {t('instructor.createNewTopic')}
               </button>
             </div>
@@ -1225,6 +1321,332 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Past Due Students Modal */}
+      {showPastDueModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {language === 'en' ? 'Past Due Submissions' : '逾期提交'}
+              </h3>
+              <button onClick={() => setShowPastDueModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {language === 'en' ? 'Student' : '学生'}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {language === 'en' ? 'Task' : '任务'}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {language === 'en' ? 'Due Date' : '截止日期'}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {language === 'en' ? 'Days Overdue' : '逾期天数'}
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {language === 'en' ? 'Action' : '操作'}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {[
+                      {
+                        student: 'Wang Xiaoming',
+                        task: language === 'en' ? 'Weekly Progress Report' : '周进度报告',
+                        dueDate: '2023-04-01',
+                        daysOverdue: 6
+                      },
+                      {
+                        student: 'Li Juan',
+                        task: language === 'en' ? 'Literature Review' : '文献综述',
+                        dueDate: '2023-03-30',
+                        daysOverdue: 8
+                      },
+                      {
+                        student: 'Zhang Wei',
+                        task: language === 'en' ? 'Experiment Results' : '实验结果',
+                        dueDate: '2023-04-02',
+                        daysOverdue: 5
+                      }
+                    ].map((item, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {item.student}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.task}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.dueDate}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            {item.daysOverdue} {language === 'en' ? 'days' : '天'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button className="text-blue-600 hover:text-blue-900 mr-3">
+                            {language === 'en' ? 'Send Reminder' : '发送提醒'}
+                          </button>
+                          <button className="text-blue-600 hover:text-blue-900">
+                            {language === 'en' ? 'View Details' : '查看详情'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+              <button 
+                onClick={() => setShowPastDueModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                {language === 'en' ? 'Close' : '关闭'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Publish New Topic Modal */}
+      {showPublishTopicModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {language === 'en' ? 'Publish New Research Topic' : '发布新研究课题'}
+              </h3>
+              <button onClick={() => setShowPublishTopicModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmitTopic} className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left column */}
+                <div className="space-y-6">
+                  {/* Topic Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'en' ? 'Topic Title' : '课题标题'} <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder={language === 'en' ? 'Enter topic title' : '输入课题标题'}
+                      value={topicForm.title}
+                      onChange={(e) => handleTopicFormChange('title', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Topic Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'en' ? 'Description' : '课题描述'} <span className="text-red-500">*</span>
+                    </label>
+                    <textarea 
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={6}
+                      placeholder={language === 'en' ? 'Provide a detailed description of the research topic' : '提供研究课题的详细描述'}
+                      value={topicForm.description}
+                      onChange={(e) => handleTopicFormChange('description', e.target.value)}
+                      required
+                    ></textarea>
+                  </div>
+                  
+                  {/* Research Objectives */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'en' ? 'Research Objectives' : '研究目标'} <span className="text-red-500">*</span>
+                    </label>
+                    <textarea 
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={4}
+                      placeholder={language === 'en' ? 'List the key objectives and expected outcomes' : '列出此研究的关键目标和预期成果'}
+                      value={topicForm.objective}
+                      onChange={(e) => handleTopicFormChange('objective', e.target.value)}
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+                
+                {/* Right column */}
+                <div className="space-y-6">
+                  {/* Required Skills */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'en' ? 'Required Skills' : '所需技能'}
+                    </label>
+                    <textarea 
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={3}
+                      placeholder={language === 'en' ? 'List the skills and knowledge students should have' : '列出学生应该具备的技能和知识'}
+                      value={topicForm.requiredSkills}
+                      onChange={(e) => handleTopicFormChange('requiredSkills', e.target.value)}
+                    ></textarea>
+                  </div>
+                  
+                  {/* Category and Difficulty */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'en' ? 'Category' : '类别'} <span className="text-red-500">*</span>
+                      </label>
+                      <select 
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        value={topicForm.category}
+                        onChange={(e) => handleTopicFormChange('category', e.target.value)}
+                        required
+                      >
+                        <option value="engineering">{language === 'en' ? 'Engineering' : '工程学'}</option>
+                        <option value="computer_science">{language === 'en' ? 'Computer Science' : '计算机科学'}</option>
+                        <option value="medicine">{language === 'en' ? 'Medicine' : '医学'}</option>
+                        <option value="physics">{language === 'en' ? 'Physics' : '物理学'}</option>
+                        <option value="chemistry">{language === 'en' ? 'Chemistry' : '化学'}</option>
+                        <option value="biology">{language === 'en' ? 'Biology' : '生物学'}</option>
+                        <option value="other">{language === 'en' ? 'Other' : '其他'}</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'en' ? 'Difficulty' : '难度'} <span className="text-red-500">*</span>
+                      </label>
+                      <select 
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        value={topicForm.difficulty}
+                        onChange={(e) => handleTopicFormChange('difficulty', e.target.value)}
+                        required
+                      >
+                        <option value="beginner">{language === 'en' ? 'Beginner' : '初级'}</option>
+                        <option value="intermediate">{language === 'en' ? 'Intermediate' : '中级'}</option>
+                        <option value="advanced">{language === 'en' ? 'Advanced' : '高级'}</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Duration and Max Students */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'en' ? 'Duration (months)' : '持续时间（月）'} <span className="text-red-500">*</span>
+                      </label>
+                      <select 
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        value={topicForm.duration}
+                        onChange={(e) => handleTopicFormChange('duration', e.target.value)}
+                        required
+                      >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="9">9</option>
+                        <option value="12">12</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'en' ? 'Max Students' : '最大学生数'} <span className="text-red-500">*</span>
+                      </label>
+                      <select 
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        value={topicForm.maxStudents}
+                        onChange={(e) => handleTopicFormChange('maxStudents', e.target.value)}
+                        required
+                      >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="10">10</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* File Attachments */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'en' ? 'Attachments (optional)' : '附件（可选）'}
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <Upload size={24} className="mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500">
+                        {language === 'en' ? 'Drag & drop files or' : '拖放文件或'}
+                        <button 
+                          type="button"
+                          className="text-green-600 hover:text-green-800 ml-1"
+                        >
+                          {language === 'en' ? 'browse' : '浏览'}
+                        </button>
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {language === 'en' ? 'PDF, DOC, DOCX, or PPT up to 10MB' : 'PDF、DOC、DOCX或PPT格式，最大10MB'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Preview notice */}
+              <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start">
+                  <div className="text-blue-500 mr-3 flex-shrink-0">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div className="text-sm text-blue-700">
+                    {language === 'en' 
+                      ? 'This topic will be visible to all students after publication. You will be able to review applications and select students later.'
+                      : '发布后，所有学生都可以看到这个课题。您稍后可以审核申请并选择学生。'
+                    }
+                  </div>
+                </div>
+              </div>
+              
+              {/* Form Actions */}
+              <div className="mt-6 flex justify-end space-x-4">
+                <button 
+                  type="button" 
+                  onClick={() => setShowPublishTopicModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  {language === 'en' ? 'Cancel' : '取消'}
+                </button>
+                <button 
+                  type="button"
+                  className="px-4 py-2 border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition"
+                >
+                  {language === 'en' ? 'Save Draft' : '保存草稿'}
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  {language === 'en' ? 'Publish Topic' : '发布课题'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

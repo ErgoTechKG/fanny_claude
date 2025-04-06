@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ClipboardCheck, Search, Plus, Clock, Calendar, BarChart, Users, ArrowRight, X } from 'lucide-react';
+import { ClipboardCheck, Search, Plus, Clock, Calendar, BarChart, Users, ArrowRight, X, FileText } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -158,6 +158,17 @@ export default function ProjectsModule() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'published' | 'drafts'>(userRole === 'instructor' ? 'published' : 'published');
+  const [detailsActiveTab, setDetailsActiveTab] = useState<'overview' | 'submissions'>('overview');
+  const [selectedSubmission, setSelectedSubmission] = useState<null | {
+    id: string;
+    student: string;
+    title: string;
+    status: 'pending' | 'in_review' | 'approved' | 'rejected';
+    date: string;
+    description: string;
+  }>(null);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   
   // Check if we have a selected project from dashboard in sessionStorage
   React.useEffect(() => {
@@ -225,8 +236,58 @@ export default function ProjectsModule() {
     });
   };
   
-  // Filter projects based on search query and status filter
-  const filteredProjects = mockProjects.filter(project => {
+  // Professor's draft projects
+  const draftProjects: Project[] = [
+    {
+      id: 'draft1',
+      title: {
+        en: 'Advanced Materials for Quantum Computing',
+        zh: '量子计算的先进材料',
+      },
+      description: {
+        en: 'Research on novel materials for building more efficient quantum computing components.',
+        zh: '研究用于构建更高效量子计算组件的新型材料。',
+      },
+      status: 'not_started',
+      category: {
+        en: 'Quantum Physics',
+        zh: '量子物理',
+      },
+      currentStep: 0,
+      totalSteps: 12,
+      progress: 0,
+      deadline: '2024-05-15',
+      supervisor: user?.name || 'Prof. Zhang',
+      collaborators: 0,
+      image: 'https://placehold.co/600x400/purple/white?text=Quantum+Computing',
+    },
+    {
+      id: 'draft2',
+      title: {
+        en: 'Eco-friendly Biodegradable Polymers',
+        zh: '环保生物降解聚合物',
+      },
+      description: {
+        en: 'Developing new biodegradable polymers with improved mechanical properties for replacing traditional plastics.',
+        zh: '开发具有改进机械性能的新型生物降解聚合物，以替代传统塑料。',
+      },
+      status: 'not_started',
+      category: {
+        en: 'Materials Science',
+        zh: '材料科学',
+      },
+      currentStep: 0,
+      totalSteps: 12,
+      progress: 0,
+      deadline: '2024-06-30',
+      supervisor: user?.name || 'Prof. Zhang',
+      collaborators: 0,
+      image: 'https://placehold.co/600x400/green/white?text=Biodegradable+Polymers',
+    }
+  ];
+
+  // Filter projects based on search query, status filter, and active tab
+  const filteredProjects = (userRole === 'instructor' && activeTab === 'drafts' ? draftProjects : mockProjects).filter(project => {
     // Search filter
     if (searchQuery && !project.title[language].toLowerCase().includes(searchQuery.toLowerCase()) && 
         !project.description[language].toLowerCase().includes(searchQuery.toLowerCase())) {
@@ -263,6 +324,93 @@ export default function ProjectsModule() {
     { en: '12. Publication/Presentation', zh: '12. 发表/演示' }
   ];
 
+  // Mock student submissions for project details
+  const mockSubmissions = [
+    {
+      id: 'sub1',
+      student: 'Wang Xiaoming',
+      title: language === 'en' ? 'Literature Review' : '文献综述',
+      status: 'approved',
+      date: '2023-06-15',
+      description: language === 'en' 
+        ? 'The student has provided a comprehensive literature review covering the major developments in this field over the past decade.'
+        : '该学生提供了一份全面的文献综述，涵盖了过去十年该领域的主要发展。'
+    },
+    {
+      id: 'sub2',
+      student: 'Li Juan',
+      title: language === 'en' ? 'Experimental Design' : '实验设计',
+      status: 'in_review',
+      date: '2023-07-10',
+      description: language === 'en'
+        ? 'The experimental design includes detailed methodology and material requirements. Needs review for feasibility.'
+        : '实验设计包括详细的方法和材料要求。需要审查其可行性。'
+    },
+    {
+      id: 'sub3',
+      student: 'Zhang Wei',
+      title: language === 'en' ? 'Preliminary Results' : '初步结果',
+      status: 'pending',
+      date: '2023-07-25',
+      description: language === 'en'
+        ? 'Initial findings from the first phase of experiments. Data analysis is still ongoing.'
+        : '第一阶段实验的初步发现。数据分析仍在进行中。'
+    },
+  ];
+  
+  // Previous project participants
+  const previousParticipants = [
+    { name: 'Chen Mei', year: '2022', contribution: language === 'en' ? 'Initial research design' : '初始研究设计' },
+    { name: 'Liu Jian', year: '2022', contribution: language === 'en' ? 'Experimental setup' : '实验设置' },
+  ];
+  
+  // Get status text for submission status
+  const getSubmissionStatusText = (status: string) => {
+    if (language === 'en') {
+      const statusMap: Record<string, string> = {
+        'pending': 'Pending Review',
+        'in_review': 'In Review',
+        'approved': 'Approved',
+        'rejected': 'Rejected'
+      };
+      return statusMap[status] || status;
+    } else {
+      const statusMap: Record<string, string> = {
+        'pending': '待审核',
+        'in_review': '审核中',
+        'approved': '已批准',
+        'rejected': '已拒绝'
+      };
+      return statusMap[status] || status;
+    }
+  };
+  
+  // Get status color for submission status
+  const getSubmissionStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'in_review': 'bg-blue-100 text-blue-800',
+      'approved': 'bg-green-100 text-green-800',
+      'rejected': 'bg-red-100 text-red-800'
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
+  };
+  
+  // Handle dragging for submissions (in a real app, this would update the backend)
+  const handleDragSubmission = (submissionId: string, newStatus: 'pending' | 'in_review' | 'approved' | 'rejected') => {
+    // In a real app, this would update the backend
+    alert(language === 'en' 
+      ? `Moved submission ${submissionId} to ${getSubmissionStatusText(newStatus)}`
+      : `将提交 ${submissionId} 移动到 ${getSubmissionStatusText(newStatus)}`
+    );
+  };
+  
+  // View submission details
+  const viewSubmissionDetails = (submission: any) => {
+    setSelectedSubmission(submission);
+    setShowSubmissionModal(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -272,13 +420,43 @@ export default function ProjectsModule() {
           {language === 'en' 
             ? userRole === 'student'
               ? 'Track and manage your ongoing research projects'
-              : 'Monitor student projects and research initiatives'
+              : 'Manage research projects and monitor student submissions'
             : userRole === 'student'
               ? '跟踪和管理您正在进行的研究项目'
-              : '监控学生项目和研究计划'
+              : '管理研究项目并监控学生提交'
           }
         </p>
       </div>
+      
+      {/* Tabs for professor users */}
+      {userRole === 'instructor' && (
+        <div className="bg-white rounded-xl shadow-sm">
+          <div className="border-b border-gray-200">
+            <nav className="flex -mb-px">
+              <button
+                onClick={() => setActiveTab('published')}
+                className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                  activeTab === 'published'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {language === 'en' ? 'Published Projects' : '已发布项目'}
+              </button>
+              <button
+                onClick={() => setActiveTab('drafts')}
+                className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                  activeTab === 'drafts'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {language === 'en' ? 'Draft Projects' : '草稿箱'}
+              </button>
+            </nav>
+          </div>
+        </div>
+      )}
       
       {/* Search and filters */}
       <div className="bg-white rounded-xl shadow-sm p-4">
@@ -314,7 +492,10 @@ export default function ProjectsModule() {
           <div className="flex justify-end">
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
               <Plus size={18} className="mr-1" />
-              <span>{language === 'en' ? 'New Project' : '新项目'}</span>
+              <span>{userRole === 'instructor' && activeTab === 'drafts' 
+                ? (language === 'en' ? 'Create Draft' : '创建草稿') 
+                : (language === 'en' ? 'New Project' : '新项目')
+              }</span>
             </button>
           </div>
         </div>
@@ -454,7 +635,7 @@ export default function ProjectsModule() {
       {/* Project Details Modal */}
       {isDetailsModalOpen && selectedProject && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col">
             {/* Modal header */}
             <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
               <h3 className="text-xl font-semibold">{selectedProject.title[language]}</h3>
@@ -466,144 +647,439 @@ export default function ProjectsModule() {
               </button>
             </div>
             
+            {/* Tabs for project details - only for professors */}
+            {userRole === 'instructor' && (
+              <div className="bg-white border-b border-gray-200">
+                <nav className="flex">
+                  <button
+                    onClick={() => setDetailsActiveTab('overview')}
+                    className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                      detailsActiveTab === 'overview'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {language === 'en' ? 'Project Overview' : '项目概述'}
+                  </button>
+                  <button
+                    onClick={() => setDetailsActiveTab('submissions')}
+                    className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                      detailsActiveTab === 'submissions'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {language === 'en' ? 'Student Submissions' : '学生提交'}
+                  </button>
+                </nav>
+              </div>
+            )}
+            
             {/* Modal content */}
             <div className="p-6 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left column - Project details */}
-                <div className="md:col-span-2 space-y-6">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
-                      {language === 'en' ? 'Project Description' : '项目描述'}
-                    </h4>
-                    <p className="text-gray-600">{selectedProject.description[language]}</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                      {language === 'en' ? 'Research Progress' : '研究进度'}
-                    </h4>
+              {/* Project overview tab */}
+              {(detailsActiveTab === 'overview' || userRole !== 'instructor') && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Left column - Project details */}
+                  <div className="md:col-span-2 space-y-6">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                        {language === 'en' ? 'Project Description' : '项目描述'}
+                      </h4>
+                      <p className="text-gray-600">{selectedProject.description[language]}</p>
+                    </div>
                     
-                    <div className="space-y-4">
-                      {researchSteps.map((step, index) => {
-                        const isCompleted = index < selectedProject.currentStep;
-                        const isCurrent = index === selectedProject.currentStep - 1;
-                        
-                        return (
-                          <div 
-                            key={index} 
-                            className={`p-4 rounded-lg border ${
-                              isCompleted 
-                                ? 'border-green-200 bg-green-50' 
-                                : isCurrent
-                                  ? 'border-blue-200 bg-blue-50'
-                                  : 'border-gray-200 bg-gray-50'
-                            }`}
-                          >
-                            <div className="flex items-center">
-                              <div className={`w-8 h-8 rounded-full mr-3 flex items-center justify-center ${
+                    {/* Previous participants section for professors */}
+                    {userRole === 'instructor' && previousParticipants.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                          {language === 'en' ? 'Previous Participants' : '以前的参与者'}
+                        </h4>
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <table className="min-w-full">
+                            <thead>
+                              <tr>
+                                <th className="text-left text-sm font-medium text-gray-500 py-2">
+                                  {language === 'en' ? 'Student' : '学生'}
+                                </th>
+                                <th className="text-left text-sm font-medium text-gray-500 py-2">
+                                  {language === 'en' ? 'Year' : '年份'}
+                                </th>
+                                <th className="text-left text-sm font-medium text-gray-500 py-2">
+                                  {language === 'en' ? 'Contribution' : '贡献'}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {previousParticipants.map((participant, index) => (
+                                <tr key={index} className="hover:bg-gray-100">
+                                  <td className="py-3 text-sm font-medium text-gray-900">{participant.name}</td>
+                                  <td className="py-3 text-sm text-gray-500">{participant.year}</td>
+                                  <td className="py-3 text-sm text-gray-500">{participant.contribution}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                        {language === 'en' ? 'Research Progress' : '研究进度'}
+                      </h4>
+                      
+                      <div className="space-y-4">
+                        {researchSteps.map((step, index) => {
+                          const isCompleted = index < selectedProject.currentStep;
+                          const isCurrent = index === selectedProject.currentStep - 1;
+                          
+                          return (
+                            <div 
+                              key={index} 
+                              className={`p-4 rounded-lg border ${
                                 isCompleted 
-                                  ? 'bg-green-500 text-white' 
+                                  ? 'border-green-200 bg-green-50' 
                                   : isCurrent
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-300 text-gray-600'
-                              }`}>
-                                {isCompleted ? (
-                                  <CheckIcon size={16} />
-                                ) : (
-                                  <span>{index + 1}</span>
+                                    ? 'border-blue-200 bg-blue-50'
+                                    : 'border-gray-200 bg-gray-50'
+                              }`}
+                            >
+                              <div className="flex items-center">
+                                <div className={`w-8 h-8 rounded-full mr-3 flex items-center justify-center ${
+                                  isCompleted 
+                                    ? 'bg-green-500 text-white' 
+                                    : isCurrent
+                                      ? 'bg-blue-500 text-white'
+                                      : 'bg-gray-300 text-gray-600'
+                                }`}>
+                                  {isCompleted ? (
+                                    <CheckIcon size={16} />
+                                  ) : (
+                                    <span>{index + 1}</span>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className={`font-medium ${
+                                    isCompleted 
+                                      ? 'text-green-800' 
+                                      : isCurrent
+                                        ? 'text-blue-800'
+                                        : 'text-gray-600'
+                                  }`}>
+                                    {step[language].split('. ')[1]}
+                                  </h5>
+                                </div>
+                                {isCompleted && (
+                                  <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                                    {language === 'en' ? 'Completed' : '已完成'}
+                                  </span>
+                                )}
+                                {isCurrent && (
+                                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                    {language === 'en' ? 'In Progress' : '进行中'}
+                                  </span>
                                 )}
                               </div>
-                              <div className="flex-1">
-                                <h5 className={`font-medium ${
-                                  isCompleted 
-                                    ? 'text-green-800' 
-                                    : isCurrent
-                                      ? 'text-blue-800'
-                                      : 'text-gray-600'
-                                }`}>
-                                  {step[language].split('. ')[1]}
-                                </h5>
-                              </div>
-                              {isCompleted && (
-                                <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
-                                  {language === 'en' ? 'Completed' : '已完成'}
-                                </span>
-                              )}
-                              {isCurrent && (
-                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
-                                  {language === 'en' ? 'In Progress' : '进行中'}
-                                </span>
-                              )}
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
+                  </div>
+                  
+                  {/* Right column - Side info */}
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                        {language === 'en' ? 'Project Details' : '项目详情'}
+                      </h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-sm text-gray-500">
+                            {language === 'en' ? 'Status' : '状态'}
+                          </div>
+                          <div className="font-medium">
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${getStatusColor(selectedProject.status)}`}>
+                              {getStatusText(selectedProject.status)}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-500">
+                            {language === 'en' ? 'Category' : '类别'}
+                          </div>
+                          <div className="font-medium">{selectedProject.category[language]}</div>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-500">
+                            {language === 'en' ? 'Deadline' : '截止日期'}
+                          </div>
+                          <div className="font-medium">{formatDate(selectedProject.deadline)}</div>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-500">
+                            {language === 'en' ? 'Supervisor' : '导师'}
+                          </div>
+                          <div className="font-medium">{selectedProject.supervisor}</div>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-500">
+                            {language === 'en' ? 'Collaborators' : '合作者'}
+                          </div>
+                          <div className="font-medium">{selectedProject.collaborators} {language === 'en' ? 'people' : '人'}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <div className="space-y-3">
+                      <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        {language === 'en' ? 'Update Progress' : '更新进度'}
+                      </button>
+                      {userRole === 'instructor' && (
+                        <button className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                          {language === 'en' ? 'Manage Project Materials' : '管理项目资料'}
+                        </button>
+                      )}
+                      {userRole === 'student' && (
+                        <button className="w-full py-2 px-4 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                          {language === 'en' ? 'Request Guidance' : '请求指导'}
+                        </button>
+                      )}
+                      <button className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                        {language === 'en' ? 'Download Report' : '下载报告'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Student submissions tab - only for professors */}
+              {detailsActiveTab === 'submissions' && userRole === 'instructor' && (
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-6">
+                    {language === 'en' ? 'Student Submissions' : '学生提交'}
+                  </h4>
+                  
+                  {/* Kanban-style board for submissions */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Pending column */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-700 mb-3 flex items-center">
+                        <span className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
+                        {language === 'en' ? 'Pending Review' : '待审核'}
+                        <span className="ml-2 text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full">
+                          {mockSubmissions.filter(s => s.status === 'pending').length}
+                        </span>
+                      </h5>
+                      
+                      <div className="space-y-3">
+                        {mockSubmissions.filter(s => s.status === 'pending').map((submission) => (
+                          <div
+                            key={submission.id}
+                            className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition"
+                            onClick={() => viewSubmissionDetails(submission)}
+                            draggable
+                            onDragEnd={() => handleDragSubmission(submission.id, 'in_review')}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <h6 className="font-medium text-gray-800">{submission.title}</h6>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getSubmissionStatusColor(submission.status)}`}>
+                                {getSubmissionStatusText(submission.status)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-2">{submission.student}</p>
+                            <p className="text-xs text-gray-400">{formatDate(submission.date)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* In Review column */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-700 mb-3 flex items-center">
+                        <span className="w-3 h-3 bg-blue-400 rounded-full mr-2"></span>
+                        {language === 'en' ? 'In Review' : '审核中'}
+                        <span className="ml-2 text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full">
+                          {mockSubmissions.filter(s => s.status === 'in_review').length}
+                        </span>
+                      </h5>
+                      
+                      <div className="space-y-3">
+                        {mockSubmissions.filter(s => s.status === 'in_review').map((submission) => (
+                          <div
+                            key={submission.id}
+                            className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition"
+                            onClick={() => viewSubmissionDetails(submission)}
+                            draggable
+                            onDragEnd={() => handleDragSubmission(submission.id, 'approved')}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <h6 className="font-medium text-gray-800">{submission.title}</h6>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getSubmissionStatusColor(submission.status)}`}>
+                                {getSubmissionStatusText(submission.status)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-2">{submission.student}</p>
+                            <p className="text-xs text-gray-400">{formatDate(submission.date)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Approved column */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-700 mb-3 flex items-center">
+                        <span className="w-3 h-3 bg-green-400 rounded-full mr-2"></span>
+                        {language === 'en' ? 'Approved' : '已批准'}
+                        <span className="ml-2 text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full">
+                          {mockSubmissions.filter(s => s.status === 'approved').length}
+                        </span>
+                      </h5>
+                      
+                      <div className="space-y-3">
+                        {mockSubmissions.filter(s => s.status === 'approved').map((submission) => (
+                          <div
+                            key={submission.id}
+                            className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition"
+                            onClick={() => viewSubmissionDetails(submission)}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <h6 className="font-medium text-gray-800">{submission.title}</h6>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getSubmissionStatusColor(submission.status)}`}>
+                                {getSubmissionStatusText(submission.status)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-2">{submission.student}</p>
+                            <p className="text-xs text-gray-400">{formatDate(submission.date)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Rejected column */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-700 mb-3 flex items-center">
+                        <span className="w-3 h-3 bg-red-400 rounded-full mr-2"></span>
+                        {language === 'en' ? 'Rejected' : '已拒绝'}
+                        <span className="ml-2 text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full">
+                          {mockSubmissions.filter(s => s.status === 'rejected').length}
+                        </span>
+                      </h5>
+                      
+                      <div className="space-y-3">
+                        {mockSubmissions.filter(s => s.status === 'rejected').map((submission) => (
+                          <div
+                            key={submission.id}
+                            className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition"
+                            onClick={() => viewSubmissionDetails(submission)}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <h6 className="font-medium text-gray-800">{submission.title}</h6>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getSubmissionStatusColor(submission.status)}`}>
+                                {getSubmissionStatusText(submission.status)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-2">{submission.student}</p>
+                            <p className="text-xs text-gray-400">{formatDate(submission.date)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Submission Details Modal */}
+      {showSubmissionModal && selectedSubmission && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {selectedSubmission.title}
+              </h3>
+              <button onClick={() => setShowSubmissionModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="flex justify-between mb-4">
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">
+                      {language === 'en' ? 'Submitted by' : '提交者'}
+                    </div>
+                    <div className="text-lg font-medium">{selectedSubmission.student}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500 mb-1">
+                      {language === 'en' ? 'Status' : '状态'}
+                    </div>
+                    <span className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${getSubmissionStatusColor(selectedSubmission.status)}`}>
+                      {getSubmissionStatusText(selectedSubmission.status)}
+                    </span>
                   </div>
                 </div>
                 
-                {/* Right column - Side info */}
-                <div className="space-y-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                      {language === 'en' ? 'Project Details' : '项目详情'}
-                    </h4>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <div className="text-sm text-gray-500">
-                          {language === 'en' ? 'Status' : '状态'}
-                        </div>
-                        <div className="font-medium">
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs ${getStatusColor(selectedProject.status)}`}>
-                            {getStatusText(selectedProject.status)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="text-sm text-gray-500">
-                          {language === 'en' ? 'Category' : '类别'}
-                        </div>
-                        <div className="font-medium">{selectedProject.category[language]}</div>
-                      </div>
-                      
-                      <div>
-                        <div className="text-sm text-gray-500">
-                          {language === 'en' ? 'Deadline' : '截止日期'}
-                        </div>
-                        <div className="font-medium">{formatDate(selectedProject.deadline)}</div>
-                      </div>
-                      
-                      <div>
-                        <div className="text-sm text-gray-500">
-                          {language === 'en' ? 'Supervisor' : '导师'}
-                        </div>
-                        <div className="font-medium">{selectedProject.supervisor}</div>
-                      </div>
-                      
-                      <div>
-                        <div className="text-sm text-gray-500">
-                          {language === 'en' ? 'Collaborators' : '合作者'}
-                        </div>
-                        <div className="font-medium">{selectedProject.collaborators} {language === 'en' ? 'people' : '人'}</div>
-                      </div>
-                    </div>
+                <div className="mb-4">
+                  <div className="text-sm text-gray-500 mb-1">
+                    {language === 'en' ? 'Submission Date' : '提交日期'}
                   </div>
-                  
-                  {/* Action buttons */}
-                  <div className="space-y-3">
-                    <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                      {language === 'en' ? 'Update Progress' : '更新进度'}
-                    </button>
-                    <button className="w-full py-2 px-4 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
-                      {language === 'en' ? 'Request Meeting' : '申请会议'}
-                    </button>
-                    <button className="w-full py-2 px-4 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition">
-                      {language === 'en' ? 'Download Report' : '下载报告'}
+                  <div>{formatDate(selectedSubmission.date)}</div>
+                </div>
+                
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">
+                    {language === 'en' ? 'Description' : '描述'}
+                  </div>
+                  <p className="text-gray-700">{selectedSubmission.description}</p>
+                </div>
+              </div>
+              
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-gray-800 mb-3">
+                  {language === 'en' ? 'Attached Files' : '附件'}
+                </h4>
+                <div className="bg-gray-50 p-3 rounded-lg mb-4">
+                  <div className="flex items-center">
+                    <FileText size={20} className="text-blue-500 mr-2" />
+                    <span className="text-sm">{selectedSubmission.title} - {selectedSubmission.date}.pdf</span>
+                    <button className="ml-auto text-blue-600 hover:text-blue-800 text-sm">
+                      {language === 'en' ? 'Download' : '下载'}
                     </button>
                   </div>
                 </div>
+              </div>
+              
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                {selectedSubmission.status === 'pending' || selectedSubmission.status === 'in_review' ? (
+                  <>
+                    <button className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                      {language === 'en' ? 'Approve' : '批准'}
+                    </button>
+                    <button className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                      {language === 'en' ? 'Reject' : '拒绝'}
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => setShowSubmissionModal(false)}
+                    className="col-span-2 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  >
+                    {language === 'en' ? 'Close' : '关闭'}
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -105,6 +105,9 @@ const translations = {
     'instructor.week': 'Week',
     'instructor.createNewTopic': 'Create New Topic',
     'instructor.publishTopicDesc': 'Create a new research topic for students to explore.',
+    'instructor.pendingTasks': 'Pending Tasks',
+    'instructor.totalProjects': 'Total Active Topics/Total Topics',
+    'instructor.pastDue': 'Past Due',
     
     // Admin specific
     'admin.title': 'Admin Dashboard',
@@ -213,6 +216,9 @@ const translations = {
     'instructor.week': '周',
     'instructor.createNewTopic': '创建新课题',
     'instructor.publishTopicDesc': '创建新的研究课题供学生探索。',
+    'instructor.pendingTasks': '待审阅的任务',
+    'instructor.totalProjects': '总活跃课题数/总课题数',
+    'instructor.pastDue': '逾期提交',
     
     // Admin specific
     'admin.title': '管理员仪表盘',
