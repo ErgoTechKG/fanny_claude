@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Login from './Login';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -18,20 +18,46 @@ import ResearchNetworkModule from './modules/ResearchNetworkModule';
 import AdminDashboardModule from './modules/AdminDashboardModule';
 import BulkEmailModule from './modules/BulkEmailModule';
 import MessagingModule from './modules/MessagingModule';
+import Cookies from 'js-cookie';
 
 export default function ResearchApp() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
 
   // State for UI
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentSection, setCurrentSection] = useState('dashboard');
+  const [currentSection, setCurrentSection] = useState(userRole === 'admin' ? 'adminDashboard' : 'dashboard');
+
+  // Initialize default section based on user role and stored cookie
+  useEffect(() => {
+    if (isAuthenticated) {
+      const storedSection = Cookies.get('lastSection');
+      
+      if (storedSection) {
+        // If there's a stored section, use it
+        setCurrentSection(storedSection);
+      } else {
+        // Otherwise set default based on role
+        const defaultSection = userRole === 'admin' ? 'adminDashboard' : 'dashboard';
+        setCurrentSection(defaultSection);
+        Cookies.set('lastSection', defaultSection, { expires: 30 }); // expires in 30 days
+      }
+    }
+  }, [isAuthenticated, userRole]);
+
+  // Save current section to cookie whenever it changes
+  useEffect(() => {
+    if (currentSection && isAuthenticated) {
+      Cookies.set('lastSection', currentSection, { expires: 30 });
+    }
+  }, [currentSection, isAuthenticated]);
 
   // Update current section based on URL path
   useEffect(() => {
-    if (pathname) {
+    if (pathname && isAuthenticated) {
       const path = pathname.split('/')[1]; // Get the first part of the path
       if (path) {
         switch(path) {
@@ -49,12 +75,13 @@ export default function ResearchApp() {
             setCurrentSection(path);
             break;
           default:
-            // Default to dashboard if path is not recognized
-            setCurrentSection('dashboard');
+            // Default to role-specific dashboard if path is not recognized
+            const defaultSection = userRole === 'admin' ? 'adminDashboard' : 'dashboard';
+            setCurrentSection(defaultSection);
         }
       }
     }
-  }, [pathname]);
+  }, [pathname, isAuthenticated, userRole]);
 
   // Listen for custom module switch events
   useEffect(() => {
@@ -77,9 +104,16 @@ export default function ResearchApp() {
     setLanguage(language === 'en' ? 'zh' : 'en');
   };
 
-  // If not authenticated, show login page
+  // If not authenticated, redirect to login page
+  useEffect(() => {
+    if (!isAuthenticated && pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router, pathname]);
+
+  // If not authenticated, render nothing while redirecting
   if (!isAuthenticated) {
-    return <Login />;
+    return null;
   }
 
   // Get the appropriate module component based on currentSection
@@ -108,7 +142,8 @@ export default function ResearchApp() {
       case 'messaging':
         return <MessagingModule />;
       default:
-        return <Dashboard />;
+        // Default to role-specific dashboard
+        return userRole === 'admin' ? <AdminDashboardModule /> : <Dashboard />;
     }
   };
 

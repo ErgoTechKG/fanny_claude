@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 // User role type
 export type UserRole = 'student' | 'instructor' | 'admin' | null;
@@ -55,13 +57,11 @@ const AuthContext = createContext<AuthContextType>({
 
 // Auth provider component
 export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  // Auto authenticate in development mode
-  const isDev = process.env.NODE_ENV === 'development';
-  
-  // Default to authenticated with student role in development mode
-  const [isAuthenticated, setIsAuthenticated] = useState(isDev ? true : false);
-  const [userRole, setUserRole] = useState<UserRole>(isDev ? 'student' : null);
-  const [user, setUser] = useState<User | null>(isDev ? mockUsers.student : null);
+  const router = useRouter();
+  // Don't auto-authenticate, we want to use the login page
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Login function (mock implementation)
   const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
@@ -75,6 +75,13 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         // Set the user based on role
         setUser(mockUsers[role as keyof typeof mockUsers] || null);
         
+        // Set initial section based on role
+        const defaultSection = role === 'admin' ? 'adminDashboard' : 'dashboard';
+        Cookies.set('lastSection', defaultSection, { expires: 30 });
+        
+        // Redirect to home page after login
+        router.push('/');
+        
         resolve(true);
       }, 500); // Simulate API delay
     });
@@ -85,6 +92,12 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setIsAuthenticated(false);
     setUserRole(null);
     setUser(null);
+    
+    // Clear cookies
+    Cookies.remove('lastSection');
+    
+    // Redirect to login page
+    router.push('/login');
   };
 
   return (
