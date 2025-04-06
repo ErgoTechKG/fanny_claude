@@ -11,7 +11,9 @@ import {
   Globe, 
   LogOut,
   Activity,
-  LayoutDashboard
+  LayoutDashboard,
+  Mail,
+  MessageCircle
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -41,14 +43,15 @@ export default function Sidebar({
     { id: 'courses', icon: <Book size={20} />, label: t('nav.courses'), hideFor: ['instructor'] },
     { id: 'projects', icon: <ClipboardCheck size={20} />, label: t('nav.projects') },
     { id: 'publications', icon: <FileText size={20} />, label: t('nav.publications') },
-    { id: 'collaborators', icon: <Users size={20} />, label: t('nav.collaborators') },
-    { id: 'aiMentor', icon: <MessageSquare size={20} />, label: t('nav.aiMentor'), hideFor: ['instructor'] },
+    { id: 'collaborators', icon: <Users size={20} />, label: t('nav.collaborators'), hideFor: ['admin'] },
+    { id: 'aiMentor', icon: <MessageSquare size={20} />, label: t('nav.aiMentor'), hideFor: ['instructor', 'admin'] },
     { 
       id: 'evaluation', 
       icon: <ClipboardCheck size={20} />, 
       label: currentUserRole === 'instructor' 
         ? (language === 'en' ? 'Teaching Quality Evaluation' : '科研教学质量评估') 
-        : t('nav.evaluation')
+        : t('nav.evaluation'),
+      hideFor: ['admin']
     },
     { id: 'researchNetwork', icon: <Users size={20} />, label: t('nav.researchNetwork') },
   ];
@@ -56,6 +59,8 @@ export default function Sidebar({
   // Admin-specific navigation items
   const adminNavItems = [
     { id: 'adminDashboard', icon: <LayoutDashboard size={20} />, label: t('admin.title') },
+    { id: 'bulkEmail', icon: <Mail size={20} />, label: language === 'en' ? 'Bulk Email' : '群发邮件' },
+    { id: 'messaging', icon: <MessageCircle size={20} />, label: language === 'en' ? 'Private Messages' : '私信功能' },
   ];
   
   return (

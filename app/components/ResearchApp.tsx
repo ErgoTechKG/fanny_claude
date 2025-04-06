@@ -16,6 +16,8 @@ import AiMentorModule from './modules/AiMentorModule';
 import EvaluationModule from './modules/EvaluationModule';
 import ResearchNetworkModule from './modules/ResearchNetworkModule';
 import AdminDashboardModule from './modules/AdminDashboardModule';
+import BulkEmailModule from './modules/BulkEmailModule';
+import MessagingModule from './modules/MessagingModule';
 
 export default function ResearchApp() {
   const { isAuthenticated } = useAuth();
@@ -42,6 +44,8 @@ export default function ResearchApp() {
           case 'evaluation':
           case 'researchNetwork':
           case 'adminDashboard':
+          case 'bulkEmail':
+          case 'messaging':
             setCurrentSection(path);
             break;
           default:
@@ -99,6 +103,10 @@ export default function ResearchApp() {
         return <ResearchNetworkModule />;
       case 'adminDashboard':
         return <AdminDashboardModule />;
+      case 'bulkEmail':
+        return <BulkEmailModule />;
+      case 'messaging':
+        return <MessagingModule />;
       default:
         return <Dashboard />;
     }
