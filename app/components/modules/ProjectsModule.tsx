@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ClipboardCheck, Search, Plus, Clock, Calendar, BarChart, Users, ArrowRight, X, FileText } from 'lucide-react';
+import { ClipboardCheck, Search, Plus, Clock, Calendar, BarChart, Users, ArrowRight, X, FileText, Star, Award, CheckCircle, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -50,9 +50,9 @@ const mockProjects: Project[] = [
     currentStep: 7,
     totalSteps: 12,
     progress: 58,
-    deadline: '2023-08-15',
+    deadline: '2025-09-25',
     supervisor: 'Prof. Li Ming',
-    collaborators: 3,
+    collaborators: 0,
     image: 'https://placehold.co/600x400/blue/white?text=Renewable+Energy',
   },
   {
@@ -73,9 +73,9 @@ const mockProjects: Project[] = [
     currentStep: 4,
     totalSteps: 12,
     progress: 33,
-    deadline: '2023-09-30',
+    deadline: '2025-09-25',
     supervisor: 'Prof. Wang Jie',
-    collaborators: 2,
+    collaborators: 0,
     image: 'https://placehold.co/600x400/green/white?text=Manufacturing',
   },
   {
@@ -96,9 +96,9 @@ const mockProjects: Project[] = [
     currentStep: 12,
     totalSteps: 12,
     progress: 100,
-    deadline: '2023-03-20',
+    deadline: '2025-09-25',
     supervisor: 'Prof. Zhang Wei',
-    collaborators: 4,
+    collaborators: 0,
     image: 'https://placehold.co/600x400/orange/white?text=Aerospace',
   },
   {
@@ -119,9 +119,9 @@ const mockProjects: Project[] = [
     currentStep: 10,
     totalSteps: 12,
     progress: 83,
-    deadline: '2023-07-10',
+    deadline: '2025-09-25',
     supervisor: 'Prof. Chen Mei',
-    collaborators: 5,
+    collaborators: 0,
     image: 'https://placehold.co/600x400/purple/white?text=Rehabilitation',
   },
   {
@@ -142,33 +142,60 @@ const mockProjects: Project[] = [
     currentStep: 0,
     totalSteps: 12,
     progress: 0,
-    deadline: '2023-11-30',
+    deadline: '2025-09-25',
     supervisor: 'Prof. Huang Lei',
-    collaborators: 2,
+    collaborators: 0,
     image: 'https://placehold.co/600x400/teal/white?text=Sustainability',
   }
 ];
 
 export default function ProjectsModule() {
   const { language, t } = useLanguage();
-  const { user } = useAuth();
-  const userRole = user?.role || 'student';
+  const { user, userRole } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'published' | 'drafts'>(userRole === 'instructor' ? 'published' : 'published');
-  const [detailsActiveTab, setDetailsActiveTab] = useState<'overview' | 'submissions'>('overview');
-  const [selectedSubmission, setSelectedSubmission] = useState<null | {
-    id: string;
-    student: string;
-    title: string;
-    status: 'pending' | 'in_review' | 'approved' | 'rejected';
-    date: string;
-    description: string;
-  }>(null);
+  const [detailsActiveTab, setDetailsActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('published');
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  
+  // 科研教学质量评估相关状态
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [evaluationForm, setEvaluationForm] = useState({
+    researchProgress: 3,
+    methodology: 4,
+    dataQuality: 3,
+    analysis: 4,
+    initiative: 4,
+    academicWriting: 3,
+    teamwork: 4,
+    ethicalConduct: 5,
+    comments: ''
+  });
+
+  // 处理评估表单变化
+  const handleEvaluationChange = (field: string, value: any) => {
+    setEvaluationForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 提交评估
+  const handleSubmitEvaluation = (e: React.FormEvent) => {
+    e.preventDefault();
+    // 这里实际应该提交到后端
+    alert(language === 'en' ? 'Research evaluation submitted successfully!' : '科研教学质量评估提交成功！');
+    setShowEvaluationModal(false);
+  };
+
+  // 开始评估
+  const startEvaluation = () => {
+    setShowEvaluationModal(true);
+  };
   
   // Check if we have a selected project from dashboard in sessionStorage
   React.useEffect(() => {
@@ -256,7 +283,7 @@ export default function ProjectsModule() {
       currentStep: 0,
       totalSteps: 12,
       progress: 0,
-      deadline: '2024-05-15',
+      deadline: '2025-09-25',
       supervisor: user?.name || 'Prof. Zhang',
       collaborators: 0,
       image: 'https://placehold.co/600x400/purple/white?text=Quantum+Computing',
@@ -279,7 +306,7 @@ export default function ProjectsModule() {
       currentStep: 0,
       totalSteps: 12,
       progress: 0,
-      deadline: '2024-06-30',
+      deadline: '2025-09-25',
       supervisor: user?.name || 'Prof. Zhang',
       collaborators: 0,
       image: 'https://placehold.co/600x400/green/white?text=Biodegradable+Polymers',
@@ -524,10 +551,12 @@ export default function ProjectsModule() {
                       <Calendar size={16} className="mr-1" /> 
                       <span>{language === 'en' ? 'Deadline:' : '截止日期:'} {formatDate(project.deadline)}</span>
                     </div>
-                    <div className="flex items-center text-gray-600">
-                      <Users size={16} className="mr-1" /> 
-                      <span>{project.collaborators} {language === 'en' ? 'Collaborators' : '合作者'}</span>
-                    </div>
+                    {userRole !== 'student' && (
+                      <div className="flex items-center text-gray-600">
+                        <Users size={16} className="mr-1" /> 
+                        <span>{project.collaborators} {language === 'en' ? 'Research Mentors' : '科研导师'}</span>
+                      </div>
+                    )}
                     <div className="flex items-center text-gray-600">
                       <ClipboardCheck size={16} className="mr-1" /> 
                       <span>{language === 'en' ? 'Supervisor:' : '导师:'} {project.supervisor}</span>
@@ -830,7 +859,7 @@ export default function ProjectsModule() {
                         
                         <div>
                           <div className="text-sm text-gray-500">
-                            {language === 'en' ? 'Collaborators' : '合作者'}
+                            {language === 'en' ? 'Research Mentors' : '科研导师'}
                           </div>
                           <div className="font-medium">{selectedProject.collaborators} {language === 'en' ? 'people' : '人'}</div>
                         </div>
@@ -839,9 +868,20 @@ export default function ProjectsModule() {
                     
                     {/* Action buttons */}
                     <div className="space-y-3">
-                      <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        {language === 'en' ? 'Update Progress' : '更新进度'}
+                      {userRole === 'instructor' && (
+                        <button 
+                          onClick={startEvaluation}
+                          className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center"
+                        >
+                          <Award size={16} className="mr-2" />
+                          <span>{language === 'en' ? 'Research Quality Assessment' : '科研教学质量评估'}</span>
                       </button>
+                      )}
+                      {userRole === 'student' && (
+                        <button className="w-full py-2 px-4 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
+                          <span>{language === 'en' ? 'Awaiting Assessment' : '等待评估'}</span>
+                        </button>
+                      )}
                       {userRole === 'instructor' && (
                         <button className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                           {language === 'en' ? 'Manage Project Materials' : '管理项目资料'}
@@ -996,6 +1036,479 @@ export default function ProjectsModule() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 科研教学质量评估模态框 */}
+      {showEvaluationModal && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {language === 'en' ? 'Research Quality Assessment' : '科研教学质量评估'}
+              </h3>
+              <button onClick={() => setShowEvaluationModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmitEvaluation} className="p-6">
+              <div className="space-y-8">
+                {/* 项目和学生信息 */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        {language === 'en' ? 'Project' : '项目'}
+                      </h4>
+                      <p className="text-base font-medium text-gray-800">
+                        {selectedProject.title[language]}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        {language === 'en' ? 'Supervisor' : '导师'}
+                      </h4>
+                      <p className="text-base font-medium text-gray-800">{selectedProject.supervisor}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        {language === 'en' ? 'Current Progress' : '当前进度'}
+                      </h4>
+                      <p className="text-base font-medium text-gray-800">
+                        {language === 'en' ? 'Step' : '步骤'} {selectedProject.currentStep}/{selectedProject.totalSteps} ({selectedProject.progress}%)
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        {language === 'en' ? 'Assessment Date' : '评估日期'}
+                      </h4>
+                      <p className="text-base font-medium text-gray-800">
+                        {new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'zh-CN')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 评估标准 */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-6">
+                    {language === 'en' ? 'Research Performance Evaluation' : '科研表现评估'}
+                  </h4>
+                  
+                  {/* 研究进度 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Research Progress' : '研究进度'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('researchProgress', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.researchProgress >= rating 
+                                ? 'bg-yellow-400 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.researchProgress >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Evaluate progress relative to project timeline and milestones.' 
+                        : '评估相对于项目时间表和里程碑的进度。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-yellow-400 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.researchProgress / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 研究方法 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Research Methodology' : '研究方法'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('methodology', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.methodology >= rating 
+                                ? 'bg-blue-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.methodology >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Assess appropriateness and rigor of research methods employed.' 
+                        : '评估所采用研究方法的适当性和严谨性。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-blue-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.methodology / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 数据质量与管理 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Data Quality and Management' : '数据质量与管理'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('dataQuality', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.dataQuality >= rating 
+                                ? 'bg-green-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.dataQuality >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Evaluate quality, organization, and documentation of research data.' 
+                        : '评估研究数据的质量、组织和文档记录。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-green-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.dataQuality / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 分析与解释 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Analysis and Interpretation' : '分析与解释'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('analysis', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.analysis >= rating 
+                                ? 'bg-purple-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.analysis >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Assess ability to analyze data and draw meaningful conclusions.' 
+                        : '评估分析数据并得出有意义结论的能力。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-purple-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.analysis / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 主动性与独立性 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Initiative and Independence' : '主动性与独立性'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('initiative', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.initiative >= rating 
+                                ? 'bg-orange-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.initiative >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Rate self-direction and ability to work independently.' 
+                        : '评估自我指导和独立工作的能力。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-orange-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.initiative / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 学术写作能力 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Academic Writing' : '学术写作能力'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('academicWriting', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.academicWriting >= rating 
+                                ? 'bg-indigo-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.academicWriting >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Evaluate clarity, structure, and academic quality of written work.' 
+                        : '评估书面作品的清晰度、结构和学术质量。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-indigo-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.academicWriting / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 团队合作能力 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Teamwork and Collaboration' : '团队合作能力'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('teamwork', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.teamwork >= rating 
+                                ? 'bg-teal-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.teamwork >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Assess collaboration skills and contribution to team efforts.' 
+                        : '评估协作技能和对团队努力的贡献。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-teal-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.teamwork / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* 研究伦理 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Ethical Conduct' : '研究伦理'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'en' ? '(1-5 scale)' : '(1-5分)'}
+                        </span>
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map(rating => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleEvaluationChange('ethicalConduct', rating)}
+                            className={`w-8 h-8 rounded-full mx-0.5 flex items-center justify-center ${
+                              evaluationForm.ethicalConduct >= rating 
+                                ? 'bg-pink-500 text-white' 
+                                : 'bg-gray-200 text-gray-400'
+                            }`}
+                          >
+                            <Star size={16} fill={evaluationForm.ethicalConduct >= rating ? 'currentColor' : 'none'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {language === 'en' 
+                        ? 'Evaluate adherence to research ethics and integrity standards.' 
+                        : '评估对研究伦理和诚信标准的遵守。'}
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-pink-500 h-1.5 rounded-full" 
+                        style={{ width: `${(evaluationForm.ethicalConduct / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 总体评估总结 */}
+                <div>
+                  <div className="flex items-center mb-4">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      {language === 'en' ? 'Overall Assessment Summary' : '总体评估总结'}
+                    </h4>
+                    <div className="ml-4 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 flex items-center">
+                      <Award size={16} className="mr-1" />
+                      <span>
+                        {language === 'en' ? 'Above Average' : '高于平均水平'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-green-50 p-3 rounded-lg flex items-center">
+                      <CheckCircle size={20} className="text-green-600 mr-2" />
+                      <div>
+                        <h5 className="text-sm font-medium text-green-800">
+                          {language === 'en' ? 'Key Strengths' : '主要优势'}
+                        </h5>
+                        <p className="text-xs text-green-700">
+                          {language === 'en' 
+                            ? 'Strong methodology and data analysis skills' 
+                            : '优秀的研究方法和数据分析技能'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-amber-50 p-3 rounded-lg flex items-center">
+                      <TrendingUp size={20} className="text-amber-600 mr-2" />
+                      <div>
+                        <h5 className="text-sm font-medium text-amber-800">
+                          {language === 'en' ? 'Development Areas' : '发展领域'}
+                        </h5>
+                        <p className="text-xs text-amber-700">
+                          {language === 'en'
+                            ? 'Academic writing and presentation skills'
+                            : '学术写作和演示技能'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-start mb-2">
+                      <AlertTriangle size={20} className="text-amber-500 mr-2 mt-0.5" />
+                      <h5 className="text-sm font-medium text-gray-700">
+                        {language === 'en' ? 'Recommendations for Improvement' : '改进建议'}
+                      </h5>
+                    </div>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 pl-6">
+                      <li>{language === 'en' ? 'Enhance literature review depth and critical analysis' : '加强文献综述深度和批判性分析'}</li>
+                      <li>{language === 'en' ? 'Improve data visualization and presentation techniques' : '改进数据可视化和演示技巧'}</li>
+                      <li>{language === 'en' ? 'Develop stronger hypothesis formulation skills' : '发展更强的假设制定技能'}</li>
+                      <li>{language === 'en' ? 'Participate more actively in academic discussions' : '更积极地参与学术讨论'}</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                {/* 评语 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'en' ? 'Detailed Comments and Feedback' : '详细评语和反馈'}
+                  </label>
+                  <textarea 
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                    placeholder={language === 'en' ? 'Provide detailed feedback on the student\'s research performance and areas for improvement...' : '对学生的科研表现和需要改进的方面提供详细反馈...'}
+                    value={evaluationForm.comments}
+                    onChange={(e) => handleEvaluationChange('comments', e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+              
+              <div className="mt-8 flex justify-between">
+                <button 
+                  type="button"
+                  onClick={() => setShowEvaluationModal(false)}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  {language === 'en' ? 'Cancel' : '取消'}
+                </button>
+                <div className="space-x-3">
+                  <button 
+                    type="button"
+                    className="px-6 py-2 border border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                  >
+                    {language === 'en' ? 'Save Draft' : '保存草稿'}
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  >
+                    {language === 'en' ? 'Submit Assessment' : '提交评估'}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

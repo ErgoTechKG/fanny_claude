@@ -317,11 +317,11 @@ export default function CollaboratorsModule() {
     <div className="space-y-6">
       {/* Page header */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">{language === 'en' ? 'Collaborators' : '合作者'}</h2>
+        <h2 className="text-2xl font-bold mb-2">{language === 'en' ? 'Research Mentors' : '科研导师'}</h2>
         <p className="text-blue-100">
           {language === 'en' 
-            ? 'Connect and collaborate with researchers across institutions'
-            : '与跨机构的研究人员建立联系并合作'
+            ? 'Connect and collaborate with fellow researchers worldwide'
+            : '与世界各地的研究人员建立联系和合作'
           }
         </p>
       </div>
@@ -334,7 +334,7 @@ export default function CollaboratorsModule() {
             <input 
               type="text" 
               className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={language === 'en' ? 'Search collaborators...' : '搜索合作者...'}
+              placeholder={language === 'en' ? 'Search mentors...' : '搜索科研导师...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -373,7 +373,7 @@ export default function CollaboratorsModule() {
           <div className="flex justify-end">
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
               <UserPlus size={18} className="mr-1" />
-              <span>{language === 'en' ? 'Add Collaborator' : '添加合作者'}</span>
+              <span>{language === 'en' ? 'Add Mentor' : '添加科研导师'}</span>
             </button>
           </div>
         </div>
@@ -464,7 +464,7 @@ export default function CollaboratorsModule() {
         <div className="text-center py-10">
           <Users size={40} className="mx-auto text-gray-300 mb-3" />
           <h3 className="text-lg font-medium text-gray-600">
-            {language === 'en' ? 'No collaborators found' : '未找到合作者'}
+            {language === 'en' ? 'No mentors found' : '未找到科研导师'}
           </h3>
           <p className="text-gray-400">
             {language === 'en' 
@@ -481,7 +481,7 @@ export default function CollaboratorsModule() {
           <div className="bg-white rounded-xl shadow-xl overflow-hidden max-w-3xl w-full max-h-[90vh] flex flex-col">
             {/* Modal header */}
             <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
-              <h3 className="text-xl font-semibold">{language === 'en' ? 'Collaborator Profile' : '合作者资料'}</h3>
+              <h3 className="text-xl font-semibold">{language === 'en' ? 'Mentor Profile' : '科研导师资料'}</h3>
               <button 
                 onClick={() => setIsProfileModalOpen(false)}
                 className="text-white hover:text-blue-200"

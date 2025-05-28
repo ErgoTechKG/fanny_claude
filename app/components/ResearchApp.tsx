@@ -18,6 +18,9 @@ import ResearchNetworkModule from './modules/ResearchNetworkModule';
 import AdminDashboardModule from './modules/AdminDashboardModule';
 import BulkEmailModule from './modules/BulkEmailModule';
 import MessagingModule from './modules/MessagingModule';
+import FormListModule from './modules/FormListModule';
+import ResearchStudentsModule from './modules/ResearchStudentsModule';
+import AssignRolesModule from './modules/AssignRolesModule';
 import Cookies from 'js-cookie';
 
 export default function ResearchApp() {
@@ -65,13 +68,16 @@ export default function ResearchApp() {
           case 'courses':
           case 'projects':
           case 'publications':
-          case 'collaborators':
+          // case 'collaborators': // Comment out or remove if 'collaborators' is no longer used
+          case 'researchStudents': // Add new case for researchStudents
+          case 'assignRoles':
           case 'aiMentor':
           case 'evaluation':
           case 'researchNetwork':
           case 'adminDashboard':
           case 'bulkEmail':
           case 'messaging':
+          case 'formList':
             setCurrentSection(path);
             break;
           default:
@@ -127,8 +133,12 @@ export default function ResearchApp() {
         return <ProjectsModule />;
       case 'publications':
         return <PublicationsModule />;
-      case 'collaborators':
-        return <CollaboratorsModule />;
+      // case 'collaborators': // Comment out or remove if 'collaborators' is no longer used
+      //   return <CollaboratorsModule />;
+      case 'researchStudents': // Add new case for researchStudents
+        return <ResearchStudentsModule />;
+      case 'assignRoles':
+        return <AssignRolesModule />;
       case 'aiMentor':
         return <AiMentorModule />;
       case 'evaluation':
@@ -141,6 +151,8 @@ export default function ResearchApp() {
         return <BulkEmailModule />;
       case 'messaging':
         return <MessagingModule />;
+      case 'formList':
+        return <FormListModule />;
       default:
         // Default to role-specific dashboard
         return userRole === 'admin' ? <AdminDashboardModule /> : <Dashboard />;

@@ -13,7 +13,8 @@ import {
   Activity,
   LayoutDashboard,
   Mail,
-  MessageCircle
+  MessageCircle,
+  UserPlus
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -43,15 +44,19 @@ export default function Sidebar({
     { id: 'courses', icon: <Book size={20} />, label: t('nav.courses'), hideFor: ['instructor'] },
     { id: 'projects', icon: <ClipboardCheck size={20} />, label: t('nav.projects') },
     { id: 'publications', icon: <FileText size={20} />, label: t('nav.publications') },
-    { id: 'collaborators', icon: <Users size={20} />, label: t('nav.collaborators'), hideFor: ['admin'] },
+    { id: 'researchStudents', icon: <Users size={20} />, label: language === 'en' ? 'Research Students' : '科研学生', hideFor: ['admin'] },
     { id: 'aiMentor', icon: <MessageSquare size={20} />, label: t('nav.aiMentor'), hideFor: ['instructor', 'admin'] },
     { 
       id: 'evaluation', 
       icon: <ClipboardCheck size={20} />, 
-      label: currentUserRole === 'instructor' 
-        ? (language === 'en' ? 'Teaching Quality Evaluation' : '科研教学质量评估') 
-        : t('nav.evaluation'),
-      hideFor: ['admin']
+      label: t('nav.evaluation'),
+      hideFor: ['admin', 'instructor']
+    },
+    { 
+      id: 'formList', 
+      icon: <FileText size={20} />, 
+      label: language === 'en' ? 'Form Management' : '表单列表',
+      hideFor: ['admin', 'student']
     },
     { id: 'researchNetwork', icon: <Users size={20} />, label: t('nav.researchNetwork') },
   ];
@@ -61,6 +66,7 @@ export default function Sidebar({
     { id: 'adminDashboard', icon: <LayoutDashboard size={20} />, label: t('admin.title') },
     { id: 'bulkEmail', icon: <Mail size={20} />, label: language === 'en' ? 'Bulk Email' : '群发邮件' },
     { id: 'messaging', icon: <MessageCircle size={20} />, label: language === 'en' ? 'Private Messages' : '私信功能' },
+    { id: 'assignRoles', icon: <UserPlus size={20} />, label: language === 'en' ? 'Assign Roles' : '分配角色' },
   ];
   
   return (

@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [reportNotes, setReportNotes] = useState('');
   const [showPastDueModal, setShowPastDueModal] = useState(false);
   const [showPublishTopicModal, setShowPublishTopicModal] = useState(false);
+  const [showProfessorGuidelinesModal, setShowProfessorGuidelinesModal] = useState(false);
   
   // Certificates data
   interface Certificate {
@@ -266,7 +267,20 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Welcome banner */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-1">{t('dashboard.welcome')}, {user?.name}</h2>
+        <h2 className="text-2xl font-bold mb-1">
+          {t('dashboard.welcome')}, {user?.name}
+          {userRole === 'instructor' && (
+            <span className="text-blue-100 text-2xl font-normal ml-2">
+              {language === 'en' ? 'This semester your role is ' : '本学期您的角色为'}
+              <button 
+                onClick={() => setShowProfessorGuidelinesModal(true)}
+                className="text-white underline hover:text-blue-200 transition-colors font-medium"
+              >
+                {language === 'en' ? 'Project Supervisor' : '项目导师'}
+              </button>
+            </span>
+          )}
+        </h2>
         <p className="text-blue-100">
           {language === 'en' 
             ? `You have ${userRole === 'student' ? '3 upcoming deadlines' : '5 assignments to review'} this week.`
@@ -1647,6 +1661,260 @@ export default function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Professor Guidelines Modal */}
+      {showProfessorGuidelinesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Modal header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+              <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-bold">
+                  {language === 'en' ? 'Project Supervisor Guidelines' : '项目导师规范'}
+                </h3>
+                <button 
+                  onClick={() => setShowProfessorGuidelinesModal(false)}
+                  className="text-white hover:text-blue-200 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <p className="text-blue-100 mt-2">
+                {language === 'en' 
+                  ? 'Essential guidelines for effective project supervision and student mentorship'
+                  : '项目指导和学生辅导的基本规范指南'
+                }
+              </p>
+            </div>
+            
+            {/* Modal content */}
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="space-y-8">
+                {/* Section 1: Role Overview */}
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3 text-sm font-bold">1</div>
+                    {language === 'en' ? 'Role Overview' : '角色概述'}
+                  </h4>
+                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      {language === 'en' 
+                        ? 'As a Project Supervisor, you are responsible for guiding students through their research journey, providing academic mentorship, and ensuring project quality standards are met. Your role is crucial in shaping the next generation of researchers.'
+                        : '作为项目导师，您负责指导学生完成研究旅程，提供学术指导，并确保达到项目质量标准。您的角色对于培养下一代研究者至关重要。'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Section 2: Key Responsibilities */}
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mr-3 text-sm font-bold">2</div>
+                    {language === 'en' ? 'Key Responsibilities' : '主要职责'}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(language === 'en' ? [
+                      {
+                        title: 'Academic Guidance',
+                        description: 'Provide direction on research methodology, literature review, and experimental design',
+                        icon: '📚'
+                      },
+                      {
+                        title: 'Regular Meetings',
+                        description: 'Conduct weekly or bi-weekly meetings to track progress and address challenges',
+                        icon: '🤝'
+                      },
+                      {
+                        title: 'Progress Monitoring',
+                        description: 'Review student submissions, provide feedback, and ensure milestone completion',
+                        icon: '📊'
+                      },
+                      {
+                        title: 'Professional Development',
+                        description: 'Support students in developing research skills, presentation abilities, and career planning',
+                        icon: '🎯'
+                      },
+                      {
+                        title: 'Quality Assurance',
+                        description: 'Ensure research ethics compliance and maintain academic standards',
+                        icon: '✅'
+                      },
+                      {
+                        title: 'Publication Support',
+                        description: 'Guide students in preparing research findings for publication and conferences',
+                        icon: '📝'
+                      }
+                    ] : [
+                      {
+                        title: '学术指导',
+                        description: '在研究方法、文献综述和实验设计方面提供指导',
+                        icon: '📚'
+                      },
+                      {
+                        title: '定期会议',
+                        description: '进行每周或双周会议，跟踪进度并解决挑战',
+                        icon: '🤝'
+                      },
+                      {
+                        title: '进度监控',
+                        description: '审核学生提交的材料，提供反馈，确保里程碑的完成',
+                        icon: '📊'
+                      },
+                      {
+                        title: '专业发展',
+                        description: '支持学生发展研究技能、演示能力和职业规划',
+                        icon: '🎯'
+                      },
+                      {
+                        title: '质量保证',
+                        description: '确保研究伦理合规并维持学术标准',
+                        icon: '✅'
+                      },
+                      {
+                        title: '发表支持',
+                        description: '指导学生准备研究成果用于发表和会议',
+                        icon: '📝'
+                      }
+                    ]).map((item, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                        <div className="flex items-start">
+                          <span className="text-2xl mr-3">{item.icon}</span>
+                          <div>
+                            <h5 className="font-semibold text-gray-800 mb-2">{item.title}</h5>
+                            <p className="text-gray-600 text-sm">{item.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 3: Best Practices */}
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-3 text-sm font-bold">3</div>
+                    {language === 'en' ? 'Best Practices' : '最佳实践'}
+                  </h4>
+                  <div className="space-y-3">
+                    {(language === 'en' ? [
+                      'Set clear expectations and project goals from the beginning',
+                      'Maintain open and regular communication channels',
+                      'Provide constructive feedback in a timely manner',
+                      'Encourage independent thinking and problem-solving',
+                      'Foster a supportive and inclusive learning environment',
+                      'Stay updated with current research trends in your field',
+                      'Document all important decisions and changes',
+                      'Respect student autonomy while providing necessary guidance'
+                    ] : [
+                      '从一开始就设定明确的期望和项目目标',
+                      '保持开放和定期的沟通渠道',
+                      '及时提供建设性反馈',
+                      '鼓励独立思考和解决问题',
+                      '营造支持性和包容性的学习环境',
+                      '跟上您所在领域的最新研究趋势',
+                      '记录所有重要决定和变更',
+                      '在提供必要指导的同时尊重学生的自主性'
+                    ]).map((practice, index) => (
+                      <div key={index} className="flex items-start">
+                        <CheckCircle size={20} className="text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <p className="text-gray-700">{practice}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 4: Communication Guidelines */}
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mr-3 text-sm font-bold">4</div>
+                    {language === 'en' ? 'Communication Guidelines' : '沟通指南'}
+                  </h4>
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h5 className="font-semibold text-gray-800 mb-2">
+                          {language === 'en' ? 'Response Times' : '回应时间'}
+                        </h5>
+                        <ul className="text-sm text-gray-700 space-y-1">
+                          <li>{language === 'en' ? '• Email inquiries: Within 24-48 hours' : '• 邮件咨询：24-48小时内'}</li>
+                          <li>{language === 'en' ? '• Urgent matters: Same day' : '• 紧急事项：当天'}</li>
+                          <li>{language === 'en' ? '• Report feedback: Within 1 week' : '• 报告反馈：1周内'}</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-semibold text-gray-800 mb-2">
+                          {language === 'en' ? 'Meeting Schedule' : '会议安排'}
+                        </h5>
+                        <ul className="text-sm text-gray-700 space-y-1">
+                          <li>{language === 'en' ? '• Regular meetings: Weekly' : '• 定期会议：每周'}</li>
+                          <li>{language === 'en' ? '• Progress reviews: Bi-weekly' : '• 进度审核：双周'}</li>
+                          <li>{language === 'en' ? '• Office hours: Mon-Fri 2-4 PM' : '• 办公时间：周一至周五 下午2-4点'}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 5: Resources and Support */}
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mr-3 text-sm font-bold">5</div>
+                    {language === 'en' ? 'Available Resources' : '可用资源'}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {(language === 'en' ? [
+                      {
+                        title: 'Research Tools',
+                        items: ['MATLAB/Simulink', 'Laboratory Equipment', 'Computing Clusters', 'Software Licenses']
+                      },
+                      {
+                        title: 'Academic Support',
+                        items: ['Library Resources', 'Writing Center', 'Statistical Consulting', 'Ethics Committee']
+                      },
+                      {
+                        title: 'Professional Development',
+                        items: ['Conference Funding', 'Workshop Access', 'Networking Events', 'Career Services']
+                      }
+                    ] : [
+                      {
+                        title: '研究工具',
+                        items: ['MATLAB/Simulink', '实验室设备', '计算集群', '软件许可证']
+                      },
+                      {
+                        title: '学术支持',
+                        items: ['图书馆资源', '写作中心', '统计咨询', '伦理委员会']
+                      },
+                      {
+                        title: '专业发展',
+                        items: ['会议资助', '研讨会准入', '网络活动', '职业服务']
+                      }
+                    ]).map((resource, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-semibold text-gray-800 mb-2">{resource.title}</h5>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          {resource.items.map((item, itemIndex) => (
+                            <li key={itemIndex}>• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Modal footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button 
+                onClick={() => setShowProfessorGuidelinesModal(false)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {language === 'en' ? 'Got it!' : '我知道了！'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -407,7 +407,7 @@ export default function AiMentorModule() {
     <div className="space-y-6">
       {/* Page header */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">{language === 'en' ? 'AI Research Mentor' : 'AI科研导师'}</h2>
+        <h2 className="text-2xl font-bold mb-2">{language === 'en' ? 'AI Research Assistant' : 'AI科研助教'}</h2>
         <p className="text-blue-100">
           {language === 'en' 
             ? 'Get personalized guidance on your research journey'
@@ -528,7 +528,7 @@ export default function AiMentorModule() {
                   <div className="h-full flex flex-col items-center justify-center text-center p-6">
                     <MessageSquare size={48} className="text-gray-300 mb-4" />
                     <h3 className="text-lg font-medium text-gray-600">
-                      {language === 'en' ? 'AI Research Mentor' : 'AI科研导师'}
+                      {language === 'en' ? 'AI Research Assistant' : 'AI科研助教'}
                     </h3>
                     <p className="text-gray-500 max-w-md mt-2">
                       {language === 'en'
